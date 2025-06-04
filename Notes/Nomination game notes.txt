@@ -1,0 +1,31 @@
+Nomination game notes
+
+Work through
+
+4 player game, 52 cards, random starter, random first trump,
+6 rounds with 8,7,6,6,7,8 cards.
+Trump determined by previous round winner,
+Points won by hand, +10 if called correctly
+Bidding starts before round with left of dealer leading and unable to call numbers which makes totalling the amount of cards in hand possible e.g for a 6 card round with 4 players 1,2,3,0 can not be called as all 6 players can win a hand.
+
+WALKTHROUGH LOGIC
+
+PRE GAME:
+GENERATE DECK
+DETERMINE AMOUNT OF PLAYERS
+DETERMINE DEALER
+DEAL HANDS FOR PLAYERS
+DETERMINE TRUMP
+LOD CALLS FIRST
+NEXT CALL X3
+LAST CALL CANNOT EQUAL NO CARDS IN HAND
+
+GAMEPLAY:
+LOD PLAYS FIRST CARD
+EACH PLAYER PLAYS A CARD
+MUST PLAY SAME SUIT IF POSSIBLE
+IF TRUMPED THEY WILL WIN HAND UNLESS HIGHER TRUMP PLAYED
+WHOEVER WINS HAND, DEALS SUBSEQUENT HAND FIRST
+REPEAT UNTIL NO MORE CARDS IN HAND
+END ROUND AND WORKOUT WHO HAS CALLED CORRECTLY
+
