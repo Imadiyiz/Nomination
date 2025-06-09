@@ -1,0 +1,76 @@
+# Contents of the Player class python file
+
+from CardClass import Card
+from DeckClass import Deck
+
+class Player():
+    """
+    Class for the Player's attributes and deck
+
+    Functions:
+
+    Collect_deck: Assigns a deck list to the player instance
+    remove_card: 
+    find_card: Returns Boolean value of whether the selected card is present in the player's deck
+    """
+
+    def __init__(self, total_score = 0, round_score = 0, position = 0, trump_decider = False, dealer = False):
+        self.total_score = total_score
+        self.round_score = round_score
+        self.position = position
+        self.trump_decider = trump_decider
+        self.dealer = dealer
+
+    def collect_deck(self, deck: list):
+        """
+        Function for receiving deck from the DeckManager
+        """
+        self.deck = deck 
+
+    def remove_card(self, selected_suit: str, selected_value: str):
+        """
+        Function for removing card from current hand
+        """
+
+        for card in self.deck:
+            if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
+                self.deck.remove(card)
+
+    def find_card(self, selected_suit:str, selected_value:str):
+        """
+        Function which returns True or False to verify 
+        whether the card is in the current hand
+        """
+        for card in self.deck:
+            if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
+                return True
+        return False
+
+    def set_position(self, value: int):
+        """
+        Function for setting the playing position for the player
+        """
+        self.position = value
+
+    def set_trump_decider(self, boolean: bool):
+        """
+        Function for setting the trump decider value
+        """
+        self.trump_decider = boolean
+
+    def set_dealer(self, boolean: bool):
+        """
+        Function for setting the dealer
+        """
+        self.dealer = boolean
+
+    def reset_dealer_trump_decider(self):
+        """
+        Function for resetting both values of the trump decider and the dealer
+        """
+
+        self.dealer = False
+        self.trump_decider = False
+
+        
+

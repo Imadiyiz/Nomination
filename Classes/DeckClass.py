@@ -1,5 +1,6 @@
 #Classes script for the Card deck
 from CardClass import Card
+import random
 
 class Deck():
 
@@ -27,7 +28,7 @@ class Deck():
         
     def generate_deck(self):
         """
-        Logic for iterating through both lists to create a full deck of cards
+        Logic for iterating through both lists to create a full deck of cards.
         Also resets the local deck list
         """
         self.deck = []
@@ -36,32 +37,41 @@ class Deck():
         for value in self.value_gen:
             for suit in self.suit_gen:
                 self.deck.append(Card(suit, value))
-
-    def remove_card(self, suit: str, value: str):
-        """
-        Function for adding a card back to the deck when necessary
-        """
-        for card in self.deck:
-            if card.suit[0].lower() == suit.lower() and card.value[0].lower() == value.lower():
-                self.deck.remove(card)
-        print(len(self.deck))
     
-    def find_card(self, suit:str, value:str):
+    def shuffle_deck(self):
         """
-        Function which returns True or False to verify 
-        whether the card is in the deck
+        Function to shuffle the items in the deck
         """
+        random.shuffle(self.deck)
+
+    def remove_card(self, selected_suit: str, selected_value: str):
+        """
+        Function for removing card from current hand
+        """
+
         for card in self.deck:
-            if card.suit[0].lower() == suit.lower() and card.value[0].lower() == value.lower():
-                return True
-        return False
-        
+            if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
+                self.deck.remove(card)
+
+    def generate_hand(self, amount):
+        """
+        Function which returns a list of Card objects
+        This represents the hand the user has
+        """
+        hand = []
+        for iteration in range(amount):
+            hand.append(self.deck[0])
+            self.remove_card(self.deck[0].suit[0], self.deck[0].value[0])
+        for card in hand:
+            print(card)
+    
         
 lol = Deck()
 
+#perfect
 lol.generate_deck()
-#lol.remove_card("Diamond", "5")
-#print(lol.find_card("Diamond", "10"))
+lol.shuffle_deck()
+lol.generate_hand(8)
 
 
 test_card = Card(("Diamond", "♦"), ("10", 5))
