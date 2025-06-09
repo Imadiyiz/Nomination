@@ -14,13 +14,14 @@ class Player():
     find_card: Returns Boolean value of whether the selected card is present in the player's deck
     """
 
-    def __init__(self, name = "AI", total_score = 0, round_score = 0, position = 0, trump_decider = False, dealer = False):
+    def __init__(self, name = "AI", total_score = 0, round_score = 0, position = 0, trump_decider = False, dealer = False, computer: bool = True):
         self.name = name
         self.total_score = total_score
         self.round_score = round_score
         self.position = position
         self.trump_decider = trump_decider
         self.dealer = dealer
+        self.computer = computer
 
     def collect_hand(self, hand: list):
         """
@@ -30,6 +31,12 @@ class Player():
             card.owner = self
 
         self.hand = hand 
+
+    def discard_hand(self):
+        """
+        Function for discarding/resetting current hand
+        """
+        self.hand = []
 
     def remove_card(self, selected_suit: str, selected_value: str):
         """
