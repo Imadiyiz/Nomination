@@ -4,6 +4,7 @@ from DeckClass import Deck
 from CardClass import Card
 from PlayerClass import Player
 from ScoreboardClass import Scoreboard
+from TableClass import Table
 import pytest
 
 
@@ -12,28 +13,43 @@ import pytest
 
 # ALL TESTS MUST START WITH THE 'TEST' PREFIX
 
-class TestClass:
-
-    """Class for checking the assigning of the cards"""
-
-    def test_card_owner(self):
-        myplayer = Player()
-        test_card = Card(("Diamond", "♦"), ("10", 10), myplayer)
-        assert test_card.owner == myplayer
-
-
-    def test_card(self):
-        test_card = Card(("Diamond", "♦"), ("10", 10))
-        assert test_card.suit == ("Diamond", "♦")
-        assert test_card.value == ("10", 10)
-        assert test_card.value[1] == 10
-    
 # Do not need to keep repeating the initialisation of the Deck object   
 @pytest.fixture 
 def my_deck():
     deck = Deck()
     deck.generate_deck() #generates full deck
     return deck
+
+@pytest.fixture 
+def my_table():
+    table = Table(max_players=4)
+    return table
+
+@pytest.fixture 
+def my_player():
+    player = Player()
+    return player
+
+@pytest.fixture 
+def my_card():
+    card = Card(suit=("Diamond", "♦"), value=("10", 10))
+    return card
+
+
+
+class TestClass:
+
+    """Class for checking the assigning of the cards"""
+
+    def test_card_owner(self, my_card, my_player):
+        test_card = Card(("Diamond", ""), ("10", 10), my_player)
+        assert test_card.owner == my_player
+
+
+    def test_card(self, my_card):
+        assert my_card.suit == ("Diamond", "♦")
+        assert my_card.value == ("10", 10)
+        assert my_card.value[1] == 10
     
 
 class TestDeckClass:
@@ -46,7 +62,7 @@ class TestDeckClass:
         assert len(my_deck.deck) == 52
         assert type(my_deck.deck) == list
 
-    def test_deck_card_find(self,my_deck):
+    def test_deck_card_find(self,my_deck): # will fix this later
         assert my_deck.find_card("Spade", "5") == True
         assert my_deck.find_card("Heart", "5") == True
         assert my_deck.find_card("Club", "5") == True
@@ -60,7 +76,6 @@ class TestDeckClass:
 
     def test_card_removal(self, my_deck): 
         my_deck.remove_card("Diamond", "10")
-        my_deck
         assert my_deck.find_card("Diamond", "10") == False
     
 
@@ -69,11 +84,13 @@ class TestScoreboardClass():
     Class for testing the functionality of the Scoreboard class
     """
 
-    def test_scoreboard_generation(self):
-        player1 = Player()
+    def test_scoreboard_generation(self, my_player):
         player2 = Player()
-        player3 = Player()
-        player4 = Player()
-        my_scoreboard=Scoreboard(player1,player2,player3,player4)
+        my_scoreboard=Scoreboard(my_player,player2)
         assert type(my_scoreboard.display()) == dict
         
+class TestTableClass():
+
+    def test_table_generation(self, my_table):
+        assert my_table.stack.qsize() == 0
+        assert my_table.winning_suit == None

@@ -1,6 +1,6 @@
 # Contents for the table class in the Nomination game
 
-import queue
+from queue import Queue
 from CardClass import Card
 
 class Table():
@@ -18,8 +18,8 @@ class Table():
 
     def __init__(self, max_players: int = 0):
 
-        self.stack = queue.Queue()
-        self.stack.maxsize(max_players)
+        self.stack = Queue(maxsize=max_players)
+        self.winning_suit = None
     
     def display_stack(self):
         """
@@ -48,7 +48,6 @@ class Table():
         """
         #reset winning card and suits
         winning_card = None
-        winning_suit = None
         trumped = False
 
         #quick check to verify whether the stack has been trumped
@@ -74,14 +73,19 @@ class Table():
             if winning_card:
 
                 #if current card's suit is the same as winning_suit
-                if card.suit[0].lower() == winning_suit:
+                if card.suit[0].lower() == self.winning_suit:
                     if card.value[1] > winning_card.value[1]:
                         winning_card = card
             else:
                 winning_card = card
-                winning_suit = card.suit[0].lower()
+                self.winning_suit = card.suit[0].lower()
 
         return winning_card.owner
 
 
-        
+    def reset_winning_suit(self):
+        """
+        Function which resets the winning suit in the stack
+        """
+
+        self.winning_suit = None
