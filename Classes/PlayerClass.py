@@ -14,34 +14,38 @@ class Player():
     find_card: Returns Boolean value of whether the selected card is present in the player's deck
     """
 
-    def __init__(self, total_score = 0, round_score = 0, position = 0, trump_decider = False, dealer = False):
+    def __init__(self, name = "AI", total_score = 0, round_score = 0, position = 0, trump_decider = False, dealer = False):
+        self.name = name
         self.total_score = total_score
         self.round_score = round_score
         self.position = position
         self.trump_decider = trump_decider
         self.dealer = dealer
 
-    def collect_deck(self, deck: list):
+    def collect_hand(self, hand: list):
         """
-        Function for receiving deck from the DeckManager
+        Function for receiving hand from the DeckManager
         """
-        self.deck = deck 
+        for card in hand: # assigns self as the owner to each card
+            card.owner = self
+
+        self.hand = hand 
 
     def remove_card(self, selected_suit: str, selected_value: str):
         """
         Function for removing card from current hand
         """
 
-        for card in self.deck:
+        for card in self.hand:
             if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
-                self.deck.remove(card)
+                self.hand.remove(card)
 
     def find_card(self, selected_suit:str, selected_value:str):
         """
         Function which returns True or False to verify 
         whether the card is in the current hand
         """
-        for card in self.deck:
+        for card in self.hand:
             if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
                 return True
         return False
@@ -58,6 +62,12 @@ class Player():
         """
         self.trump_decider = boolean
 
+    def set_name(self, name: str):
+        """
+        Function for setting the name of the player
+        """
+        self.name = name
+
     def set_dealer(self, boolean: bool):
         """
         Function for setting the dealer
@@ -72,5 +82,6 @@ class Player():
         self.dealer = False
         self.trump_decider = False
 
-        
+    def __str__(self):
+        return self.name    
 

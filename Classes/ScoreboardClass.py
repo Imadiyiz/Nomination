@@ -6,18 +6,28 @@ from PlayerClass import Player
 class Scoreboard():
     """
     Scoreboard class used to monitor and update the scores of multiple players.
-    Acts more as a manager than a storage place for the scores
+    Acts more as a manager than a storage place for the scores.
+
+    Parameters: Accepts Player objects only
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args):
         self.scoreboard = {}
-        for player in kwargs:
-            self.scoreboard[player]=0
+        for player in args[:5]: #max 6
+            self.scoreboard[str(player)] = 0 #sets score to 0
+            print("args:: ", player)
+        print("scoreboard:: ",self.scoreboard)
         
-    def display(self):
+    def display(self) -> list:
         """
         Function for outputting the scores in the game
         """
-
         print(self.scoreboard)
+        return self.scoreboard
         
+
+myplayer = Player()
+myplayer2 = Player()
+myplayer3 = Player()
+myscoreboard = Scoreboard(myplayer, myplayer2, myplayer3)
+myscoreboard.display()

@@ -64,6 +64,16 @@ class Deck():
             self.remove_card(self.deck[0].suit[0], self.deck[0].value[0])
         for card in hand:
             print(card)
+
+    def find_card(self, selected_suit:str, selected_value:str):
+        """
+        Function which returns True or False to verify 
+        whether the card is in the current hand
+        """
+        for card in self.deck:
+            if (card.suit[0].lower() == selected_suit.lower()) and (card.value[0].lower() == selected_value.lower()):
+                return True
+        return False
     
         
 lol = Deck()

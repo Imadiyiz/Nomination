@@ -1,11 +1,11 @@
 # Class script for the cards in the deck
 
-
 class Card():
 
-    def __init__(self, suit: tuple, value: tuple):
+    def __init__(self, suit: tuple, value: tuple, owner: 'Player' = None): # Forward reference to avoid nameError
         self.suit = suit
         self.value = value
+        self.owner = owner
         self.picture = self.generate_picture()
 
     def __str__(self):
