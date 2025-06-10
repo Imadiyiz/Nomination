@@ -17,7 +17,6 @@ import pytest
 @pytest.fixture 
 def my_deck():
     deck = Deck()
-    deck.generate_deck() #generates full deck
     return deck
 
 @pytest.fixture 

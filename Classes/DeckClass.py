@@ -12,6 +12,9 @@ class Deck():
     Functions:
 
     generate_deck populates the local deck list
+    remove_card removes the card selected and takes the suit and value as the parameter
+    generate_hand generates a list which contains the hand for the player ~ takes the amount as a parameter
+    find_card returns boolean depending on whether the suit and value in the parameters are found
     
     """
     def __init__(self):
@@ -24,7 +27,7 @@ class Deck():
             self.value_gen.add((item,index+2))
 
         self.suit_gen = (("Diamond","♦"), ("Spade","♠"),("Club","♣"),("Heart","♥"))
-        self.deck = []
+        self.deck = self.generate_deck()
         
     def generate_deck(self):
         """
@@ -32,17 +35,11 @@ class Deck():
         Also resets the local deck list
         """
         self.deck = []
-        print("suit gen:: ", self.suit_gen)
-        print("Value gen:: ", self.value_gen)
         for value in self.value_gen:
             for suit in self.suit_gen:
                 self.deck.append(Card(suit, value))
-    
-    def shuffle_deck(self):
-        """
-        Function to shuffle the items in the deck
-        """
-        random.shuffle(self.deck)
+        random.shuffle(self.deck) #always shuffle deck after generation
+        
 
     def remove_card(self, selected_suit: str, selected_value: str):
         """
@@ -53,17 +50,21 @@ class Deck():
             if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
                 self.deck.remove(card)
 
-    def generate_hand(self, amount):
+    def generate_hand(self, amount) -> list:
         """
         Function which returns a list of Card objects
         This represents the hand the user has
         """
+
+        #verify the amount of cards in the hand
+        if not ((8 >= amount) and (amount >= 6)):
+            raise Exception("Too many cards requested for this hand")
+
         hand = []
         for iteration in range(amount):
             hand.append(self.deck[0])
             self.remove_card(self.deck[0].suit[0], self.deck[0].value[0])
-        for card in hand:
-            print(card)
+        return hand
 
     def find_card(self, selected_suit:str, selected_value:str):
         """
@@ -74,14 +75,3 @@ class Deck():
             if (card.suit[0].lower() == selected_suit.lower()) and (card.value[0].lower() == selected_value.lower()):
                 return True
         return False
-    
-        
-lol = Deck()
-
-#perfect
-lol.generate_deck()
-lol.shuffle_deck()
-lol.generate_hand(8)
-
-
-test_card = Card(("Diamond", "♦"), ("10", 5))

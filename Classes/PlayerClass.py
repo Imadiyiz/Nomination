@@ -14,14 +14,14 @@ class Player():
     find_card: Returns Boolean value of whether the selected card is present in the player's deck
     """
 
-    def __init__(self, name = "AI", total_score = 0, round_score = 0, position = 0, trump_decider = False, dealer = False, computer: bool = True):
+    def __init__(self, name = "AI", total_score = 0, round_score = 0, trump_decider = False, dealer = False, computer: bool = True):
         self.name = name
         self.total_score = total_score
         self.round_score = round_score
-        self.position = position
         self.trump_decider = trump_decider
         self.dealer = dealer
         self.computer = computer
+        self.hand = []
 
     def collect_hand(self, hand: list):
         """
@@ -57,12 +57,6 @@ class Player():
                 return True
         return False
 
-    def set_position(self, value: int):
-        """
-        Function for setting the playing position for the player
-        """
-        self.position = value
-
     def set_trump_decider(self, boolean: bool):
         """
         Function for setting the trump decider value
@@ -75,11 +69,11 @@ class Player():
         """
         self.name = name
 
-    def set_dealer(self, boolean: bool):
+    def set_dealer(self):
         """
-        Function for setting the dealer
+        Function for setting the player as the dealer
         """
-        self.dealer = boolean
+        self.dealer = True
 
     def reset_dealer_trump_decider(self):
         """

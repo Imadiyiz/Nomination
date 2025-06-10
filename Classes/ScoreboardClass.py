@@ -24,10 +24,3 @@ class Scoreboard():
         """
         print(self.scoreboard)
         return self.scoreboard
-        
-
-myplayer = Player()
-myplayer2 = Player()
-myplayer3 = Player()
-myscoreboard = Scoreboard(myplayer, myplayer2, myplayer3)
-myscoreboard.display()
