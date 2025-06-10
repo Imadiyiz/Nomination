@@ -22,6 +22,7 @@ class Player():
         self.dealer = dealer
         self.computer = computer
         self.hand = []
+        self.bid = 0
 
     def collect_hand(self, hand: list):
         """
@@ -63,17 +64,17 @@ class Player():
         """
         self.trump_decider = boolean
 
-    def set_name(self, name: str):
-        """
-        Function for setting the name of the player
-        """
-        self.name = name
-
     def set_dealer(self):
         """
         Function for setting the player as the dealer
         """
         self.dealer = True
+
+    def reset_bid(self):
+        """
+        Function for resetting the bidding value
+        """
+        self.bid = 0
 
     def reset_dealer_trump_decider(self):
         """

@@ -6,6 +6,7 @@ from PlayerClass import Player
 from ScoreboardClass import Scoreboard
 from TableClass import Table
 import pytest
+from GameManager import Game
 
 
 #NEED TO TEST EVERY SINGLE FUNCTION FOR THE DECK
@@ -33,6 +34,15 @@ def my_player():
 def my_card():
     card = Card(suit=("Diamond", "♦"), value=("10", 10))
     return card
+
+@pytest.fixture 
+def my_game():
+    player = Player(name="Jay", computer=False)
+    player2 = Player(name="Haider", computer=False)
+    player3 = Player()
+    player4 = Player()
+    game = Game(player, player2, player3, player4)
+    return game
 
 
 
@@ -85,7 +95,8 @@ class TestScoreboardClass():
 
     def test_scoreboard_generation(self, my_player):
         player2 = Player()
-        my_scoreboard=Scoreboard(my_player,player2)
+        player_list = [my_player, player2]
+        my_scoreboard=Scoreboard(player_list)
         assert type(my_scoreboard.display()) == dict
         
 class TestTableClass():
@@ -93,3 +104,15 @@ class TestTableClass():
     def test_table_generation(self, my_table):
         assert my_table.stack.qsize() == 0
         assert my_table.winning_suit == None
+
+class TestGameClass():
+    """
+    Class for testing the functionality of the Game class
+    """
+
+    def test_game_generation(self, my_game):
+        my_game.create_game()
+        assert my_game.game_state == "CREATE_GAME"
+        assert my_game.player_queue.qsize() == 4
+        my_game.deck.remove_card("Diamond", "10")
+        assert my_game.deck.find_card("Diamond", "10") == False

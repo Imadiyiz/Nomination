@@ -8,12 +8,12 @@ class Scoreboard():
     Scoreboard class used to monitor and update the scores of multiple players.
     Acts more as a manager than a storage place for the scores.
 
-    Parameters: Accepts Player objects only
+    Parameters: Accepts Player List objects only
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args:list):
         self.scoreboard = {}
-        for player in args[:5]: #max 6
+        for player in args[0]: #max 6
             self.scoreboard[str(player)] = 0 #sets score to 0
             print("args:: ", player)
         print("scoreboard:: ",self.scoreboard)

@@ -39,6 +39,8 @@ class Deck():
             for suit in self.suit_gen:
                 self.deck.append(Card(suit, value))
         random.shuffle(self.deck) #always shuffle deck after generation
+
+        return self.deck
         
 
     def remove_card(self, selected_suit: str, selected_value: str):
