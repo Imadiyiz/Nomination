@@ -1,7 +1,7 @@
 # Contents of the Player class python file
 
-from CardClass import Card
-from DeckClass import Deck
+from .CardClass import Card
+from .DeckClass import Deck
 
 class Player():
     """
@@ -22,6 +22,7 @@ class Player():
         self.dealer = dealer
         self.computer = computer
         self.hand = []
+        self.show_hand = False
         self.bid = 0
 
     def collect_hand(self, hand: list):
@@ -83,6 +84,27 @@ class Player():
 
         self.dealer = False
         self.trump_decider = False
+
+    def reset_show_hand(self):
+        """
+        Function for resetting the boolean of the show_hand
+        """
+        self.show_hand = False
+    
+    def show_hand(self):
+        """
+        Function for displaying the hand on the screen
+        """
+        hand = ""
+
+        if self.show_hand:
+            for card in self.hand:
+                hand += f"{card}\n"
+        else:
+            for card in self.hand:
+                hand += "X " 
+
+        return hand
 
     def __str__(self):
         return self.name    

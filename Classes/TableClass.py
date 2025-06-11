@@ -1,7 +1,7 @@
 # Contents for the table class in the Nomination game
 
 from queue import Queue
-from CardClass import Card
+from .CardClass import Card
 
 class Table():
     """
@@ -21,13 +21,20 @@ class Table():
         self.stack = Queue(maxsize=max_players)
         self.winning_suit = None
     
-    def display_stack(self):
+    def display_stack(self, visual: bool = False):
         """
         Function for displaying the card contents of the current stack
         """
 
-        for card in self.stack:
-            print(card)
+        if self.stack:
+            if visual:
+                for card in self.stack:
+                    print(card.picture)
+            else:
+                for card in self.stack:
+                    print(card)
+        else:
+            print("Stack is currently empty")
 
     def add_to_stack(self, card: Card = None):
         """

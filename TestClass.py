@@ -1,12 +1,12 @@
  # content of TestClass.py
 
-from DeckClass import Deck
-from CardClass import Card
-from PlayerClass import Player
-from ScoreboardClass import Scoreboard
-from TableClass import Table
+from Classes.DeckClass import Deck
+from Classes.CardClass import Card
+from Classes.PlayerClass import Player
+from Classes.ScoreboardClass import Scoreboard
+from Classes.TableClass import Table
 import pytest
-from GameManager import Game
+from Classes.GameManager import Game
 
 
 #NEED TO TEST EVERY SINGLE FUNCTION FOR THE DECK
@@ -41,7 +41,9 @@ def my_game():
     player2 = Player(name="Haider", computer=False)
     player3 = Player()
     player4 = Player()
-    game = Game(player, player2, player3, player4)
+    my_list = [player, player2, player3, player4]
+    game = Game(my_list)
+    game.create_game()
     return game
 
 
@@ -98,6 +100,7 @@ class TestScoreboardClass():
         player_list = [my_player, player2]
         my_scoreboard=Scoreboard(player_list)
         assert type(my_scoreboard.display()) == dict
+        assert len(my_scoreboard.display()) == 2
         
 class TestTableClass():
 
@@ -111,8 +114,11 @@ class TestGameClass():
     """
 
     def test_game_generation(self, my_game):
-        my_game.create_game()
         assert my_game.game_state == "CREATE_GAME"
         assert my_game.player_queue.qsize() == 4
         my_game.deck.remove_card("Diamond", "10")
         assert my_game.deck.find_card("Diamond", "10") == False
+
+    def test_game_bidding(self, my_game):
+        for player in my_game.create_player_list():
+            assert player.bid == 0

@@ -1,12 +1,13 @@
 # Contents of the GameManager class
 
-from TableClass import Table
-from DeckClass import Deck
-from PlayerClass import Player
-from CardClass import Card
+from .TableClass import Table
+from .DeckClass import Deck
+from .PlayerClass import Player
+from .CardClass import Card
 import random
 from queue import Queue
-from ScoreboardClass import Scoreboard
+from .ScoreboardClass import Scoreboard
+from .MessageManager import MessageQueue
 
 class Game():
     """
@@ -21,11 +22,13 @@ class Game():
         """
         self.game_state = None
         self.player_queue = Queue()
+        self.player_list = self.create_player_list()
 
         #creates a temp list with the player objects in
         temp_list = []
-        for player in args:
-            temp_list.append(player)
+        for listr in args:
+            for player in listr:
+                temp_list.append(player)
 
         #reset players and remove duplicate names
         names_dict = {}
@@ -44,7 +47,6 @@ class Game():
         
         if self.player_queue.qsize() > 6:
             raise Exception("Too many players in the game")
-        
 
 
     def create_game(self):
@@ -70,16 +72,14 @@ class Game():
         
         #determine trump
         #since deck is already shuffled, should be ok to pick first card
-        trump_suit = self.deck.deck[0].suit[0]
+        self.trump_suit = self.deck.deck[0].suit[0]
         print("CARD RANDOMLY CHOSEN:: ", self.deck.deck[0])
-        print("TRUMP SUIT:: ", trump_suit)
+        print("TRUMP SUIT:: ", self.trump_suit)
 
-        #generate list for Scoreboard class
-        player_list = self.create_player_list()
-
-        #Generate scoreboard object and table object
-        self.scoreboard = Scoreboard(player_list)
+        #Generate scoreboard object, table object and message_queue object
+        self.scoreboard = Scoreboard(self.player_list)
         self.table = Table(max_players=self.player_queue.qsize())
+        
 
     def deal_cards(self, amount_to_deal: int = 0):
         """
@@ -106,7 +106,62 @@ class Game():
         """
         Function for the functionality of the bidding round
         """
-
-        for player in self.create_player_list():
+        self.game_state = "BIDDING START"
+        for player in self.player_list:
             player.reset_bid()
+        
+        self.message_queue.add_to_queue(f"""
+                                        BIDDING BEGINS\n
+                                        {self.player_list[0]} BIDDING FIRST""")
+        
+        print(self.message_queue.output_queue())
 
+    def end_bidding(self):
+        """
+        Function for ending the bidding round
+        """
+
+        self.game_state = "BIDDING END"
+
+    def start_playing(self):
+        """
+        Function for the functionality of the playing round
+        """
+
+        self.game_state = "PLAYING START"
+        self.message_queue.add_to_queue(self.display_ingame_menu())
+        print(self.message_queue.output_queue())
+        #self.table
+
+    def player_bid(self, player:Player):
+        """
+        Function for the functionality of the player's individual bid during the round
+
+        Holds inforamtion about the bid, the message and the player
+        """
+
+        bid = input("Type the number of the cards you want to bid")
+
+    def display_ingame_menu(self, player:Player):
+        """
+        Displays the menu for the player during the round
+
+        The menu includes:
+        VIEW_SCOREBOARD, VIEW STACK, 
+        """
+        round_scoreboard = self.scoreboard.display()
+        string = f"""
+        {player.name} STARTS PLAYING
+
+        ROUND SCOREBOARD{round_scoreboard}
+        TRUMP: {self.trump_suit}
+        HAND: {player.show_hand()}
+        STACK: {self.table.stack}
+
+        [1] SHOW HAND 
+        [2] VIEW OVERALL SCOREBOARD
+        [3] PLAY CARD
+        [9] EXIT        
+        """
+
+        return string

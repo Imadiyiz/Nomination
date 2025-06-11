@@ -1,6 +1,6 @@
 # Contents of the Scoreboard class which keeps track of the scores in the game
 
-from PlayerClass import Player
+from .PlayerClass import Player
 
 
 class Scoreboard():
@@ -13,14 +13,15 @@ class Scoreboard():
 
     def __init__(self, *args:list):
         self.scoreboard = {}
-        for player in args[0]: #max 6
-            self.scoreboard[str(player)] = 0 #sets score to 0
-            print("args:: ", player)
+        self.overall_scoreboard = []
+        for player_list in args: #max 6
+            for player in player_list:
+                self.scoreboard[player] = 0 #sets score to 0
+                print("args:: ", player)
         print("scoreboard:: ",self.scoreboard)
         
     def display(self) -> list:
         """
         Function for outputting the scores in the game
         """
-        print(self.scoreboard)
         return self.scoreboard

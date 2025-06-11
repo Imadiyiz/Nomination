@@ -1,5 +1,5 @@
 #Classes script for the Card deck
-from CardClass import Card
+from .CardClass import Card
 import random
 
 class Deck():
