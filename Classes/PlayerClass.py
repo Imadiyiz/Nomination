@@ -34,6 +34,22 @@ class Player():
 
         self.hand = hand 
 
+        #Creates a hidden version of the hand
+        self.hidden_hand = []
+        for card in hand:
+            self.hidden_hand.append('X')
+
+    def display_hand(self):
+        """
+        Displays current hand in a human format
+        """
+
+        temp_list = []
+
+        for card in self.hand:
+            temp_list.append(card.name)
+        return temp_list
+
     def discard_hand(self):
         """
         Function for discarding/resetting current hand

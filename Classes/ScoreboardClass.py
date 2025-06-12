@@ -17,8 +17,6 @@ class Scoreboard():
         for player_list in args: #max 6
             for player in player_list:
                 self.scoreboard[player] = 0 #sets score to 0
-                print("args:: ", player)
-        print("scoreboard:: ",self.scoreboard)
         
     def display(self) -> list:
         """

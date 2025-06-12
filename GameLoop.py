@@ -3,10 +3,14 @@
 from Classes.GameManager import Game
 from Classes.PlayerClass import Player
 
+from Utils.tools import clear_screen
+
+
 def setup_game():
         """
         Function for setting up the game with the settings
         """
+        #v = validate
         no_of_players = int(input("ENTER TOTAL AMOUNT OF PLAYERS (MAX 6)")[0])
         print(f"{no_of_players} Players selected")
 
@@ -28,8 +32,22 @@ def setup_game():
         game = Game(player_list)
         game.create_game()
 
+        return game
 
-setup_game()
+def start_bidding(amount: int = 8, game: Game = None):
+    """
+    Starts the bidding round
+    """
+
+    game.start_bidding(amount)
+
+
+
+     
+
+game = setup_game()
+clear_screen(1) #5
+game.start_bidding(8)
 
 #gameloop
 while True:

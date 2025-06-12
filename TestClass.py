@@ -101,6 +101,21 @@ class TestScoreboardClass():
         my_scoreboard=Scoreboard(player_list)
         assert type(my_scoreboard.display()) == dict
         assert len(my_scoreboard.display()) == 2
+
+class TestPlayerClass():
+    """
+    Class for testing the functionality of the Player class
+    """
+
+    def test_player_hand_collection(self, my_player, my_deck):
+        my_player.collect_hand(my_deck.generate_hand(6))
+        assert len(my_player.hand) == 6
+        assert type(my_player.hand) == list
+
+    def test_player_hidden_hand(self, my_player, my_deck):
+        my_player.collect_hand(my_deck.generate_hand(6))
+        assert my_player.hidden_hand == ['X','X','X','X','X','X']
+
         
 class TestTableClass():
 
@@ -120,5 +135,8 @@ class TestGameClass():
         assert my_game.deck.find_card("Diamond", "10") == False
 
     def test_game_bidding(self, my_game):
-        for player in my_game.create_player_list():
+        assert my_game.player_list != []
+        for player in my_game.player_list:
             assert player.bid == 0
+        my_game.start_bidding(8)
+        assert my_game.player_list != []
