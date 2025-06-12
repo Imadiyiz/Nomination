@@ -24,8 +24,8 @@ class Game():
         self.player_queue = Queue()
         self.current_bids = {}
         self.menu_options = {
-            "S": "show_hand",
-            "B": "bid" 
+            "S": "SHOW HAND",
+            "B": "BID" 
         }
 
         #creates a temp list with the player objects in
@@ -94,6 +94,30 @@ class Game():
         self.scoreboard = Scoreboard(self.player_list)
         self.table = Table(max_players=self.player_queue.qsize())
         
+    def player_bid(self, player:Player=None, not_allowed:int = -1):
+        """
+        High level block of player making bid
+
+        Returns True if success
+        Returns False if bid is invalid
+        """
+        if not_allowed >= 0:
+            user_input = input(f"ENTER BID (BANNED: {not_allowed})\n")
+        else:
+            user_input = input("ENTER BID\n")
+        if int(user_input[0]):
+                user_input = int(user_input[0])
+                if user_input == not_allowed:
+                    print(f"Unable to bid that amount")
+                    return False
+                if user_input < 9:
+                    player.bid = user_input
+                    self.current_bids[player.name] = player.bid
+                    if user_input == 1:
+                        print(f"{player.name} Bid 1 Card")
+                    else:
+                        print(f"{player.name} Bid {player.bid} Cards")
+                    return True
 
     def deal_cards(self, amount_to_deal: int = 0):
         """
@@ -109,10 +133,14 @@ class Game():
         """
         Function for the functionality of the bidding round
         """
+
+        clear_screen()
         self.game_state = "BIDDING START"
+
+        #last person has a handicapped bid
+        self.player_list[-1].handicapped_bid = True
         
-        print(
-            f"""BIDDING BEGINS\n""")
+        print(f"""\nBIDDING BEGINS\n""")
 
         #Loop for every player in the list
         for player in self.player_list:
@@ -120,26 +148,29 @@ class Game():
 
             menu_options_string = ""
             for char, option in self.menu_options.items():
-                menu_options_string += f"[{char}] {option}\n"
-            
+                    menu_options_string += f"[{char}] {option}\n"
 
+            self.menu_options = {
+                        'S': 'SHOW HAND',
+                        'B': 'BID'
+                        }
             bidding_menu = (
 f"""{player}'s TURN BIDDING
 
 CURRENT BIDS: {self.current_bids}
 TRUMP: {self.trump_suit.upper()}
-HAND: [{player.hidden_hand}]
+HAND: {player.hidden_hand}
 
 {menu_options_string}
-""")
-
+""")                
+            clear_screen()
             user_input = input((bidding_menu))
 
             if user_input[0].upper() in self.menu_options:
-                if user_input[0].upper() == "S":
-                    #Show Hand
-                    clear_screen()
-                    bidding_menu = (
+                        if user_input[0].upper() == "S":
+                            #Show Hand
+                            clear_screen()
+                            bidding_menu = (
 f"""{player}'s TURN BIDDING
 
 CURRENT BIDS: {self.current_bids}
@@ -148,24 +179,30 @@ HAND: [{player.display_hand()}]
 
 {menu_options_string}
 """)
-                    self.menu_options = {
+                            self.menu_options = {
                         'H': 'HIDE HAND',
                         'B': 'BID'
                         }
-                    print(bidding_menu)
-                
-                elif user_input[0].upper() == 'B':
-                    #player gets to enter bid
-                    clear_screen()
-                    user_input = input("ENTER BID\n")
-                    if int(user_input[0]):
-                        user_input = int(user_input[0])
-                        if user_input < 9:
-                            player.bid = user_input
-                            if user_input == 1:
-                                print(f"{player.name} Bid 1 Card")
-                            print(f"{player.name} Bid {player.bid} Cards")
+                        elif user_input[0].upper() == 'B':
+                        #player gets to enter bid
+                            run = True
+                            while run:
+                                clear_screen()
 
+                                #check for handicap
+                                if player.handicapped_bid:
+                                    banned = int()
+                                    for number in self.current_bids.values():
+                                        if number != 'X':
+                                            banned += int(number)
+                                    banned = max_cards - banned                                        
+                                    if self.player_bid(player=player, not_allowed=banned) == True:
+                                        run = False
+                                else:
+                                    if self.player_bid(player=player) == True:
+                                        run = False
+                                    else:
+                                        print("TRY AGAIN")
 
 
 
@@ -185,15 +222,6 @@ HAND: [{player.display_hand()}]
         print(self.display_ingame_menu())
         #print(self.message_queue.output_queue())
         #self.table
-
-    def player_bid(self, player:Player):
-        """
-        Function for the functionality of the player's individual bid during the round
-
-        Holds inforamtion about the bid and the player
-        """
-
-        bid = input("Type the number of the cards you want to bid")
 
     def display_ingame_menu(self, player:Player):
         """

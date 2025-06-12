@@ -9,7 +9,7 @@ class Card():
         self.picture = self.generate_picture()
 
     def __str__(self):
-        return f"{self.value[0]} of {self.suit[0]}"
+        return f"{self.value[0]} {self.suit[0]}"
     
     def generate_picture(self):
         """

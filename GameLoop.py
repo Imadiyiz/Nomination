@@ -47,7 +47,7 @@ def start_bidding(amount: int = 8, game: Game = None):
 
 game = setup_game()
 clear_screen(1) #5
-game.start_bidding(8)
+game.start_bidding(max_cards=8)
 
 #gameloop
 while True:

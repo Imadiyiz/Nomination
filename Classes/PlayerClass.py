@@ -14,7 +14,13 @@ class Player():
     find_card: Returns Boolean value of whether the selected card is present in the player's deck
     """
 
-    def __init__(self, name = "AI", total_score = 0, round_score = 0, trump_decider = False, dealer = False, computer: bool = True):
+    def __init__(self, name = "AI",
+                  total_score:int = 0,
+                    round_score:int = 0,
+                      trump_decider:bool = False,
+                        dealer:bool = False,
+                          computer: bool = True,
+                           handicapped_bid:bool = False):
         self.name = name
         self.total_score = total_score
         self.round_score = round_score
@@ -24,6 +30,7 @@ class Player():
         self.hand = []
         self.show_hand = False
         self.bid = 0
+        self.handicapped_bid = handicapped_bid
 
     def collect_hand(self, hand: list):
         """
@@ -47,7 +54,7 @@ class Player():
         temp_list = []
 
         for card in self.hand:
-            temp_list.append(card.name)
+            temp_list.append(str(card))
         return temp_list
 
     def discard_hand(self):
@@ -100,6 +107,7 @@ class Player():
 
         self.dealer = False
         self.trump_decider = False
+        self.handicapped_bid = False
 
     def reset_show_hand(self):
         """
