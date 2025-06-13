@@ -29,7 +29,7 @@ class Player():
         self.computer = computer
         self.hand = []
         self.show_hand = False
-        self.bid = 0
+        self.bid = -1 # bid is never appended and must can not be 0 by default
         self.handicapped_bid = handicapped_bid
 
     def collect_hand(self, hand: list):

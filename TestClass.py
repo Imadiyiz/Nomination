@@ -137,7 +137,7 @@ class TestGameClass():
     def test_game_bidding(self, my_game):
         assert my_game.player_list != []
         for player in my_game.player_list:
-            assert player.bid == 0
+            assert player.bid == -1
         my_game.start_bidding(max_cards=8)
         assert my_game.player_list != []
         assert my_game.player_list[-1].handicapped_bid == True

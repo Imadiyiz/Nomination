@@ -60,7 +60,14 @@ class Game():
         for player in self.player_list:
             self.current_bids[player.name] = 'X'
 
+    def update_current_bids(self):
+        """
+        Function for updating the current bids scoreboard ensuring it stays in sync
+        """
 
+        for player in self.player_list:
+            if player.bid > -1:
+                self.current_bids[player.name] = player.bid
 
     def create_game(self):
         """
@@ -113,12 +120,24 @@ class Game():
                 if user_input < 9:
                     player.bid = user_input
                     self.current_bids[player.name] = player.bid
+                    self.update_current_bids()
                     if user_input == 1:
                         print(f"{player.name} Bid 1 Card")
                     else:
                         print(f"{player.name} Bid {player.bid} Cards")
                     return True
 
+    def create_menu_options_string(self):
+        """
+        Function for creating the menu options string to ensure it is up to date
+        """
+        menu_options_string = ""
+        for char, option in self.menu_options.items():
+                    menu_options_string += f"[{char}] {option}\n"
+
+        return menu_options_string
+
+        
     def deal_cards(self, amount_to_deal: int = 0):
         """
         Function for dealing cards to the players
@@ -144,16 +163,14 @@ class Game():
 
         #Loop for every player in the list
         for player in self.player_list:
-            player.reset_bid()
-
-            menu_options_string = ""
-            for char, option in self.menu_options.items():
-                    menu_options_string += f"[{char}] {option}\n"
+            player.reset_bid()            
 
             self.menu_options = {
                         'S': 'SHOW HAND',
                         'B': 'BID'
                         }
+            menu_options_string = self.create_menu_options_string()
+
             bidding_menu = (
 f"""{player}'s TURN BIDDING
 
@@ -163,44 +180,51 @@ HAND: {player.hidden_hand}
 
 {menu_options_string}
 """)                
-            clear_screen()
-            user_input = input((bidding_menu))
+            bid_complete = False
+            while not bid_complete:
+            #cleans screen before printing the bidding menu
+                clear_screen()
+                user_input = input((bidding_menu))
 
-            if user_input[0].upper() in self.menu_options:
+                if user_input[0].upper() in self.menu_options:
                         if user_input[0].upper() == "S":
                             #Show Hand
                             clear_screen()
+
+                            self.menu_options = {
+                        'B': 'BID'
+                        }
+                            menu_options_string = self.create_menu_options_string()
                             bidding_menu = (
 f"""{player}'s TURN BIDDING
 
 CURRENT BIDS: {self.current_bids}
 TRUMP: {self.trump_suit.upper()}
-HAND: [{player.display_hand()}]
+HAND: {player.display_hand()}
 
 {menu_options_string}
 """)
-                            self.menu_options = {
-                        'H': 'HIDE HAND',
-                        'B': 'BID'
-                        }
                         elif user_input[0].upper() == 'B':
                         #player gets to enter bid
                             run = True
                             while run:
                                 clear_screen()
-
                                 #check for handicap
                                 if player.handicapped_bid:
                                     banned = int()
+                                    #calculate banned number
                                     for number in self.current_bids.values():
                                         if number != 'X':
                                             banned += int(number)
-                                    banned = max_cards - banned                                        
+                                    banned = max_cards - banned       
+                                    # apply param if handicapped                                 
                                     if self.player_bid(player=player, not_allowed=banned) == True:
                                         run = False
+                                        bid_complete = True
                                 else:
                                     if self.player_bid(player=player) == True:
                                         run = False
+                                        bid_complete = True
                                     else:
                                         print("TRY AGAIN")
 
@@ -246,3 +270,9 @@ HAND: [{player.display_hand()}]
         """
 
         return string
+    
+""" TODO: Need to fix the logic with the show hand. I should just show the hand and then play the 
+game instead of hiding it and unhiding it. 
+
+
+"""
