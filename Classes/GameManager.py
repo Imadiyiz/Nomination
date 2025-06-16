@@ -100,6 +100,20 @@ class Game():
         #Generate scoreboard object, table object and message_queue object
         self.scoreboard = Scoreboard(self.player_list)
         self.table = Table(max_players=self.player_queue.qsize())
+
+    def calculate_banned_number(self, max_cards):
+        """
+        Function for calculating the banned number the player is unable to bid this round
+        """
+
+        banned = int()
+        #calculate banned number
+        for number in self.current_bids.values():
+            if number != 'X':
+                banned += int(number)
+        banned = max_cards - banned  
+
+        return banned
         
     def player_bid(self, player:Player=None, not_allowed:int = -1):
         """
@@ -112,7 +126,7 @@ class Game():
             user_input = input(f"ENTER BID (BANNED: {not_allowed})\n")
         else:
             user_input = input("ENTER BID\n")
-        if int(user_input[0]):
+        if user_input[0].strip():
                 user_input = int(user_input[0])
                 if user_input == not_allowed:
                     print(f"Unable to bid that amount")
@@ -126,43 +140,12 @@ class Game():
                     else:
                         print(f"{player.name} Bid {player.bid} Cards")
                     return True
+                
+    def create_player_bid_menu(self, player:Player = None, max_cards:int = None):
+            """
+            Function for creating the player bid menu, ensuring that the computer players do not need the menu
+            """
 
-    def create_menu_options_string(self):
-        """
-        Function for creating the menu options string to ensure it is up to date
-        """
-        menu_options_string = ""
-        for char, option in self.menu_options.items():
-                    menu_options_string += f"[{char}] {option}\n"
-
-        return menu_options_string
-
-        
-    def deal_cards(self, amount_to_deal: int = 0):
-        """
-        Function for dealing cards to the players
-        """
-        #deal cards for player
-        for _ in range(self.player_queue.qsize()):
-            temp_player = self.player_queue.get()
-            temp_player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
-            self.player_queue.put(temp_player)
-
-    def start_bidding(self, max_cards):
-        """
-        Function for the functionality of the bidding round
-        """
-
-        clear_screen()
-        self.game_state = "BIDDING START"
-
-        #last person has a handicapped bid
-        self.player_list[-1].handicapped_bid = True
-        
-        print(f"""\nBIDDING BEGINS\n""")
-
-        #Loop for every player in the list
-        for player in self.player_list:
             player.reset_bid()            
 
             self.menu_options = {
@@ -181,8 +164,9 @@ HAND: {player.hidden_hand}
 {menu_options_string}
 """)                
             bid_complete = False
-            while not bid_complete:
-            #cleans screen before printing the bidding menu
+            while not bid_complete and player.computer == False:
+
+                #cleans screen before printing the bidding menu
                 clear_screen()
                 user_input = input((bidding_menu))
 
@@ -190,10 +174,10 @@ HAND: {player.hidden_hand}
                         if user_input[0].upper() == "S":
                             #Show Hand
                             clear_screen()
-
                             self.menu_options = {
                         'B': 'BID'
                         }
+                            #updates the bidding options
                             menu_options_string = self.create_menu_options_string()
                             bidding_menu = (
 f"""{player}'s TURN BIDDING
@@ -211,13 +195,8 @@ HAND: {player.display_hand()}
                                 clear_screen()
                                 #check for handicap
                                 if player.handicapped_bid:
-                                    banned = int()
-                                    #calculate banned number
-                                    for number in self.current_bids.values():
-                                        if number != 'X':
-                                            banned += int(number)
-                                    banned = max_cards - banned       
-                                    # apply param if handicapped                                 
+                                    banned = self.calculate_banned_number(max_cards=max_cards)     
+                                    # apply param if handicapped  
                                     if self.player_bid(player=player, not_allowed=banned) == True:
                                         run = False
                                         bid_complete = True
@@ -227,6 +206,97 @@ HAND: {player.display_hand()}
                                         bid_complete = True
                                     else:
                                         print("TRY AGAIN")
+
+    def computer_bid(self, player:Player = None, not_allowed:int = -1):
+        """
+        High level block of computer user making a bid
+
+        Returns True when a bid is complete
+        Raises error if anything goes wrong
+        """
+        #generate random bid
+        bid  = random.randint(0,4)
+
+        #checks if bid is valid
+        if bid == not_allowed:
+            #if not valid then bid will be randomised
+            bid = random.randint(not_allowed+1, not_allowed+2)
+            if bid < 0:
+                bid = 1
+                if bid == not_allowed:
+                    bid = 2
+
+        player.bid = bid
+        self.current_bids[player.name] = player.bid
+        self.update_current_bids()
+        if bid == 1:
+            print(f"{player.name} Bid 1 Card")
+        else:
+            print(f"{player.name} Bid {player.bid} Cards")
+        return True
+                
+        
+    def create_menu_options_string(self):
+        """
+        Function for creating the menu options string to ensure it is up to date
+        """
+        menu_options_string = ""
+        for char, option in self.menu_options.items():
+                    menu_options_string += f"[{char}] {option}\n"
+
+        return menu_options_string
+
+    def deal_cards(self, amount_to_deal: int = 0):
+        """
+        Function for dealing cards to the players
+        """
+        #deal cards for player
+        for _ in range(self.player_queue.qsize()):
+            temp_player = self.player_queue.get()
+            temp_player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
+            self.player_queue.put(temp_player)
+
+    def start_bidding(self, max_cards):
+        """
+        Function for the functionality of the bidding round
+        """
+        clear_screen()
+        self.game_state = "BIDDING START"
+
+        #last person has a handicapped bid
+        self.player_list[-1].handicapped_bid = True
+        
+        #Bidding output begins
+        print(f"""\nBIDDING BEGINS\n""")
+
+        #Loop for every player in the list
+        for player in self.player_list:
+            player.reset_bid()            
+            
+            #if human, use the player bid menu
+            if player.computer == False:
+                self.create_player_bid_menu(player, max_cards=max_cards)
+            else:
+                 #check for handicap
+                if player.handicapped_bid:
+                    banned = self.calculate_banned_number(max_cards=max_cards)     
+                    # apply param if handicapped  
+                    self.computer_bid(player=player, not_allowed=banned)
+                else:
+                    self.computer_bid(player)
+
+        #end bidding information
+        clear_screen()
+        print(f"{self.current_bids}\n")
+
+        #calculate + or - round
+        total_bids = 0
+        for bid in self.current_bids.values():
+            total_bids += bid
+        if total_bids > max_cards:
+            print(f"+{total_bids-max_cards} ROUND")
+        else:
+            print(f"-{max_cards-total_bids} ROUND")
 
 
 
