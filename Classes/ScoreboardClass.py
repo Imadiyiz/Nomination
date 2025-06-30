@@ -21,5 +21,11 @@ class Scoreboard():
     def display(self) -> list:
         """
         Function for outputting the scores in the game
+
+        Returns a formatted version of the scoreboard which is readable 
         """
-        return self.scoreboard
+        formatted_scoreboard = []
+        for player, value in self.scoreboard.items():
+            formatted_scoreboard.append((player.name,value))
+
+        return formatted_scoreboard

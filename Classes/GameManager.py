@@ -11,9 +11,16 @@ from Utils.tools import clear_screen
 
 class Game():
     """
-    Class for managing the game state and events in the game.
+    Class for managing the game state and event flows in the game.
 
-    Used for a high level understanding of how the game should run
+    Used for a high level understanding of how the game should run, including managing player bidding,
+    and menu interactions
+
+    Attributes:
+        game_state (str): Stores the current state of the game
+        player_queue (Queue): A queue which stores the order of which the players are playing
+        current_bids (dict): A dictionary which stores the values of the current bids along with the player
+        menu_options (dict): A dictionary which stores the current options for the menu
     """
 
     def __init__(self,*args, **kwargs):
@@ -71,11 +78,8 @@ class Game():
 
     def create_game(self):
         """
-        Function for creating the initial game.
+        Function for creating the initial game. 
 
-        Must define the amount of players in the game
-
-        #Players should have been initialised beforehand
         """
         self.game_state = "CREATE_GAME"
         
@@ -119,8 +123,8 @@ class Game():
         """
         High level block of player making bid
 
-        Returns True if success
-        Returns False if bid is invalid
+        Args:
+            player (Player): The player instance which is performing the bidding
         """
         if not_allowed >= 0:
             user_input = input(f"ENTER BID (BANNED: {not_allowed})\n")
@@ -141,7 +145,7 @@ class Game():
                         print(f"{player.name} Bid {player.bid} Cards")
                     return True
                 
-    def create_player_bid_menu(self, player:Player = None, max_cards:int = None):
+    def create_player_bid_menu(self, player:Player = None, max_cards:int = None, round_no:int = 1):
             """
             Function for creating the player bid menu, ensuring that the computer players do not need the menu
             """
@@ -168,6 +172,7 @@ HAND: {player.hidden_hand}
 
                 #cleans screen before printing the bidding menu
                 clear_screen()
+                print(f"""ROUND {round_no}: {max_cards} CARDS PER HAND\n""")
                 user_input = input((bidding_menu))
 
                 if user_input[0].upper() in self.menu_options:
@@ -215,16 +220,12 @@ HAND: {player.display_hand()}
         Raises error if anything goes wrong
         """
         #generate random bid
-        bid  = random.randint(0,4)
+        bid_invalid = True
+        while bid_invalid:
+            bid  = random.randint(0,4)
+            if bid != not_allowed:
+                bid_invalid = False
 
-        #checks if bid is valid
-        if bid == not_allowed:
-            #if not valid then bid will be randomised
-            bid = random.randint(not_allowed+1, not_allowed+2)
-            if bid < 0:
-                bid = 1
-                if bid == not_allowed:
-                    bid = 2
 
         player.bid = bid
         self.current_bids[player.name] = player.bid
@@ -256,7 +257,7 @@ HAND: {player.display_hand()}
             temp_player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
             self.player_queue.put(temp_player)
 
-    def start_bidding(self, max_cards):
+    def start_bidding(self, max_cards, round_no:int = 1):
         """
         Function for the functionality of the bidding round
         """
@@ -271,11 +272,11 @@ HAND: {player.display_hand()}
 
         #Loop for every player in the list
         for player in self.player_list:
-            player.reset_bid()            
-            
+            player.reset_bid() 
+
             #if human, use the player bid menu
             if player.computer == False:
-                self.create_player_bid_menu(player, max_cards=max_cards)
+                self.create_player_bid_menu(player, max_cards=max_cards, round_no = round_no)
             else:
                  #check for handicap
                 if player.handicapped_bid:
@@ -299,50 +300,121 @@ HAND: {player.display_hand()}
             print(f"-{max_cards-total_bids} ROUND")
 
 
-
     def end_bidding(self):
         """
         Function for ending the bidding round
         """
-
         self.game_state = "BIDDING END"
 
-    def start_playing(self):
+    def start_round(self, max_cards):
         """
         Function for the functionality of the playing round
+
+        "Remember to shuffle the order of the player list so that the person in first position is now last"
         """
-
+        user_choice = ""
         self.game_state = "PLAYING START"
-        print(self.display_ingame_menu())
-        #print(self.message_queue.output_queue())
-        #self.table
 
-    def display_ingame_menu(self, player:Player):
+        for player in self.player_list:
+            first_card = None
+            run = True
+            while run:
+                if player.computer:
+                    private_stack = self.table.stack
+                    #if the stack is not empty
+                    if not private_stack.empty():
+                        first_card = private_stack.get() #gets the bottom item in stack cause error
+                    else:
+                        first_card = None
+
+                    for card in player.hand:
+                        if self.table.valid_add_to_stack(trump_suit=self.trump_suit, card=card, first_card=first_card):
+                            self.table.add_to_stack(card=card)
+                            print(f"{player.name} played a {card}")
+                            player.remove_card(card)
+                            break
+                    run = False
+                else:
+                    #logic for selecting a card to add to the stack
+                    user_choice  = input(self.display_ingame_menu(player))
+                    if user_choice[0].isdigit():
+                        user_choice = int(user_choice[0])
+                        if user_choice <= len(player.hand):
+                            private_stack = self.table.stack
+                            #if the stack is not empty
+                            if not private_stack.empty():
+                                first_card = private_stack.get() #gets the bottom item in stack cause error
+                                print("FIRST CARD, ", first_card)
+                            if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card):
+                                #if valid then add it to the queue
+                                self.table.add_to_stack(card=player.hand[user_choice])
+                                player.remove_card(card=player.hand[user_choice])
+                                run = False
+                            else:
+                                print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {self.trump_suit} or {first_card.suit[0]}")
+                        else:
+                            print(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
+                    else:
+                        print("INVALID OPTION")
+
+        print("Done")
+
+
+    def decide_trump(self, player:Player):
+        """Function for determining the trump for the next round
+        Useful for the subsequent rounds of the game"""
+
+        self.trump_suit = ""
+        valid_menu_options = ["C", "S", "H", "D"]
+        trump_choice = input(
+            F"""ENTER YOUR CHOICE OF TRUMP
+                [C] CLUB
+                [S] SPADE
+                [H] HEART
+                [D] DIAMOND 
+                """).strip()
+        
+        if trump_choice.upper()[0] in valid_menu_options:
+            if trump_choice == "C":
+                self.trump_suit = 'club'
+            if trump_choice == "S":
+                self.trump_suit = 'spade'
+            if trump_choice == "H":
+                self.trump_suit = 'heart'
+            if trump_choice == "D":
+                self.trump_suit = 'diamond'
+
+
+
+    def display_ingame_menu(self, player:Player) -> str:
         """
         Displays the menu for the player during the round
 
         The menu includes:
-        VIEW_SCOREBOARD, VIEW STACK, 
+        PLAY_cARD, 
         """
         round_scoreboard = self.scoreboard.display()
-        string = f"""
-        {player.name} STARTS PLAYING
+        player.show_hand = True #Forces hand to be able to be seen
+        hand_str = player.display_hand()
+        stack_str = self.table.display_stack()
+        _string = f"""
+{player.name} STARTS PLAYING
 
-        ROUND SCOREBOARD{round_scoreboard}
-        TRUMP: {self.trump_suit}
-        HAND: {player.show_hand()}
-        STACK: {self.table.stack}
+ROUND SCOREBOARD{round_scoreboard}
+TRUMP: {self.trump_suit}
+HAND:\n {hand_str}
+STACK: {stack_str}
 
-        [1] SHOW HAND 
-        [2] VIEW OVERALL SCOREBOARD
-        [3] PLAY CARD
-        [9] EXIT        
-        """
-
-        return string
+ENTER THE INDEX VALUE OF THE CARD YOU WANT TO PLAY
+E.G (Enter "0" for '{player.hand[0]}')
+MAX VALUE: {len(player.hand)-1}\n"""
+        return _string
     
 """ TODO: Need to fix the logic with the show hand. I should just show the hand and then play the 
-game instead of hiding it and unhiding it. 
+game instead of hiding it and unhiding it. DONE 16/05/25
 
+Returned to this code 25/06/2025 after a small hiatus (I was working and got complacent with progress)
 
+The classes in general are not specific enough (they have multiple uses) and this makes them difficult to test and understand.
+I have made some impressive progress in the gaming journey however, I am ready to move onto the new game and make it good.
 """

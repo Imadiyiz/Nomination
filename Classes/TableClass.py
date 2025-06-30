@@ -20,30 +20,70 @@ class Table():
 
         self.stack = Queue(maxsize=max_players)
         self.winning_suit = None
+        self._stack =[]
+
     
-    def display_stack(self, visual: bool = False):
+    def display_stack(self, visual: bool = False) -> str:
         """
         Function for displaying the card contents of the current stack
+
+        Returns a string of the stack in a readable format
         """
 
-        if self.stack:
+        if not self.stack.empty():
+            print("stack not empty")
+            #Use a private list to make the queue easier to use
+            
+            while not self.stack.empty():
+                self._stack.append(self.stack.get())
+
+            #readd items to stack
+            for item in self._stack:
+                self.stack.put(item)
+
+            string = ""
+
             if visual:
-                for card in self.stack:
-                    print(card.picture)
+                for card in self._stack:
+                    string += f"{card.picture}\n"
+                return string
             else:
-                for card in self.stack:
-                    print(card)
+                print("STACKERINO", self._stack)
+                for card in self._stack:
+                    string += f"{card}\n"
+                print("FINAL STRING: ", string)
+                return string
         else:
-            print("Stack is currently empty")
+            return "Stack is currently empty" 
 
     def add_to_stack(self, card: Card = None):
         """
-        Function for adding a card to the current stack on the table
+        Function for adding a card to the current
+         stack on the table
+
+        Make sure to manually remove card from player hand
         """
-        if card not in self.stack:
-            self.stack.put(card)
-            return
-        raise Exception("Duplicate card added to the stack")
+        self.stack.put(card)
+        print("adding to stack, ", self.stack)
+
+    
+    def valid_add_to_stack(self, card: Card = None, trump_suit: str = None, first_card: Card = None):
+        """
+        Function for verifying whether the card is able to be played in the current deck
+
+        Returns True if the card is valid and able to be added to the card stack
+        Returns False if the card is invalid and is unable to be added to the card stack
+        """
+        private_stack = self.stack
+        if not private_stack.empty(): 
+            if first_card.suit:
+                if card.suit[0] == trump_suit.lower() or card.suit[0] == first_card.suit[0]:
+                    return True
+                else:
+                    return False
+            return True
+        return True
+
 
     def verify_winner(self, trump_suit: str):
         """
@@ -59,7 +99,7 @@ class Table():
 
         #quick check to verify whether the stack has been trumped
         for card in self.stack:
-            if card.suit[0].lower() == trump_suit:
+            if card.suit[0].lower() == trump_suit.lower():
                 trumped = True
             break
 
@@ -87,7 +127,7 @@ class Table():
                 winning_card = card
                 self.winning_suit = card.suit[0].lower()
 
-        return winning_card.owner
+        return winning_card # will have to manually query for the owner
 
 
     def reset_winning_suit(self):

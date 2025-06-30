@@ -5,6 +5,9 @@ from Classes.PlayerClass import Player
 
 from Utils.tools import clear_screen
 
+#define the max_cards per round in a list
+cards_per_round = [8,7,6,6,7,8]
+
 
 def setup_game():
         """
@@ -47,7 +50,11 @@ def start_bidding(amount: int = 8, game: Game = None):
 
 game = setup_game()
 clear_screen(1) #5
-game.start_bidding(max_cards=8)
+# At this point the bidding is complete
+"""0,8 """
+for round, value in enumerate(cards_per_round):  
+    game.start_bidding(max_cards=value, round_no=round+1) 
+    game.start_round(max_cards=round)
 
 #gameloop
 while True:

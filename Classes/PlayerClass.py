@@ -48,10 +48,11 @@ class Player():
 
     def display_hand(self):
         """
-        Displays current hand in a human format
+        Displays current hand in a human format and is always shown
         """
 
         temp_list = []
+        self.show_hand = True
 
         for card in self.hand:
             temp_list.append(str(card))
@@ -63,14 +64,16 @@ class Player():
         """
         self.hand = []
 
-    def remove_card(self, selected_suit: str, selected_value: str):
+    def remove_card(self, card:Card):
         """
         Function for removing card from current hand
         """
 
-        for card in self.hand:
-            if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
-                self.hand.remove(card)
+        for _card in self.hand:
+            if card == _card:
+                self.hand.remove(_card)
+                print("REMOVED", card, 'From ', self.name)
+                return
 
     def find_card(self, selected_suit:str, selected_value:str):
         """
@@ -115,9 +118,10 @@ class Player():
         """
         self.show_hand = False
     
-    def show_hand(self):
+    def display_hand(self) -> str:
         """
         Function for displaying the hand on the screen
+        Return a string of the hand
         """
         hand = ""
 

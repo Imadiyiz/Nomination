@@ -44,6 +44,7 @@ def my_game():
     my_list = [player, player2, player3, player4]
     game = Game(my_list)
     game.create_game()
+    game.start_round(max_cards=8)
     return game
 
 
@@ -138,8 +139,12 @@ class TestGameClass():
         assert my_game.player_list != []
         for player in my_game.player_list:
             assert player.bid == -1
+        
+    def test_player_handicap(self, my_game):
         my_game.start_bidding(max_cards=8)
         assert my_game.player_list != []
         assert my_game.player_list[-1].handicapped_bid == True
         assert my_game.player_list[0].handicapped_bid == False
 
+    def test_start_round(self,my_game):
+        my_game.start_round(max_cards=8)
