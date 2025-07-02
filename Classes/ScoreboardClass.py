@@ -16,7 +16,7 @@ class Scoreboard():
         self.overall_scoreboard = []
         for player_list in args: #max 6
             for player in player_list:
-                self.scoreboard[player] = 0 #sets score to 0
+                self.scoreboard[player.name] = 0 #sets score to 0
         
     def display(self) -> list:
         """
@@ -26,6 +26,6 @@ class Scoreboard():
         """
         formatted_scoreboard = []
         for player, value in self.scoreboard.items():
-            formatted_scoreboard.append((player.name,value))
+            formatted_scoreboard.append((player,value))
 
         return formatted_scoreboard

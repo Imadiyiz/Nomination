@@ -6,7 +6,9 @@ from .PlayerClass import Player
 from .CardClass import Card
 import random
 from .ScoreboardClass import Scoreboard
+from .UIManager import UIManager
 from Utils.tools import clear_screen
+from .BiddingManager import BiddingManager
 
 class Game():
     """
@@ -41,10 +43,11 @@ class Game():
 
         self.player_list = temp_list
 
+        ##
         #reset players and remove duplicate names
         names_dict = {}
         for player in self.player_list:
-            player.reset_dealer_trump_decider()
+            player.reset()
             if player.name not in names_dict:
                 names_dict[player.name] = 1
             else:
@@ -99,6 +102,8 @@ class Game():
         #Generate scoreboard object, table object 
         self.scoreboard = Scoreboard(self.player_list)
         self.table = Table(max_players=len(self.player_list))
+        self.UIManager = UIManager()
+        self.biddingManager = BiddingManager(self.player_list)
 
     def calculate_banned_number(self, max_cards):
         """
@@ -114,30 +119,40 @@ class Game():
 
         return banned
         
-    def player_bid(self, player:Player=None, not_allowed:int = -1):
+    def player_bid(self, player:Player=None, max_cards: int = 6):
         """
-        High level block of player making bid
+        High level block of player making bid, handles validation of input
+
+        Returns TRUE or FALSE based on whether the bid was valid
 
         Args:
             player (Player): The player instance which is performing the bidding
         """
-        if not_allowed >= 0:
-            user_input = input(f"ENTER BID (BANNED: {not_allowed})\n")
+
+        not_allowed = self.biddingManager.calculate_banned_number(max_cards)
+        #check for handicap
+        if player.handicapped_bid:
+            user_input = self.UIManager.get_player_input(f"ENTER BID (BANNED: {not_allowed})\n")
         else:
-            user_input = input("ENTER BID\n")
+            user_input = self.UIManager.get_player_input("ENTER BID\n")
+
+        #working with input  
         if user_input[0].strip():
                 user_input = int(user_input[0])
                 if user_input == not_allowed:
-                    print(f"Unable to bid that amount")
+                    self.UIManager.display_message(f"Unable to bid that amount")
                     return False
                 if user_input < 9:
-                    player.bid = user_input
-                    self.current_bids[player.name] = player.bid
-                    self.update_current_bids()
-                    if user_input == 1:
-                        print(f"{player.name} Bid 1 Card")
+                    
+                    #valid bid
+                    if self.biddingManager.player_bid(player, amount = user_input):
+                        if user_input == 1:
+                            self.UIManager.display_message(f"{player.name} bid {user_input} Card")
+                        else:
+                            self.UIManager.display_message(f"{player.name} bid {user_input} Cards")
+
                     else:
-                        print(f"{player.name} Bid {player.bid} Cards")
+                        self.UIManager.display_message("Unable to bid that amount")
                     return True
                 
     def create_player_bid_menu(self, player:Player = None, max_cards:int = None, round_no:int = 1):
@@ -184,7 +199,7 @@ f"""{player}'s TURN BIDDING
 
 CURRENT BIDS: {self.current_bids}
 TRUMP: {self.trump_suit.upper()}
-HAND: {player.display_hand()}
+HAND: {player.display_hand_str()}
 
 {menu_options_string}
 """)
@@ -195,9 +210,8 @@ HAND: {player.display_hand()}
                                 clear_screen()
                                 #check for handicap
                                 if player.handicapped_bid:
-                                    banned = self.calculate_banned_number(max_cards=max_cards)     
                                     # apply param if handicapped  
-                                    if self.player_bid(player=player, not_allowed=banned) == True:
+                                    if self.player_bid(player=player, max_cards=max_cards):
                                         run = False
                                         bid_complete = True
                                 else:
@@ -205,7 +219,7 @@ HAND: {player.display_hand()}
                                         run = False
                                         bid_complete = True
                                     else:
-                                        print("TRY AGAIN")
+                                        self.UIManager.display_message("TRY AGAIN")
 
     def computer_bid(self, player:Player = None, not_allowed:int = -1):
         """
@@ -257,6 +271,7 @@ HAND: {player.display_hand()}
         clear_screen()
         self.game_state = "BIDDING START"
 
+        ##
         #last person has a handicapped bid
         self.player_list[-1].handicapped_bid = True
         
@@ -386,7 +401,7 @@ HAND: {player.display_hand()}
         """
         round_scoreboard = self.scoreboard.display()
         player.show_hand = True #Forces hand to be able to be seen
-        hand_str = player.display_hand()
+        hand_str = player.display_hand_str()
         stack_str = self.table.display_stack()
         _string = f"""
 {player.name} STARTS PLAYING
@@ -408,4 +423,9 @@ Returned to this code 25/06/2025 after a small hiatus (I was working and got com
 
 The classes in general are not specific enough (they have multiple uses) and this makes them difficult to test and understand.
 I have made some impressive progress in the gaming journey however, I am ready to move onto the new game and make it good.
+
+Good progress today. 02/07/25
+
+Need to fix error where if someone doesnt have trump or starting card they are free to play what they want
+
 """

@@ -1,139 +1,68 @@
 # Contents of the Player class python file
 
 from .CardClass import Card
-from .DeckClass import Deck
+from dataclasses import dataclass, field
+from typing import List, Optional
 
-class Player():
+@dataclass
+class Player:
     """
-    Class for the Player's attributes and deck
-
-    Functions:
-
-    Collect_deck: Assigns a deck list to the player instance
-    remove_card: 
-    find_card: Returns Boolean value of whether the selected card is present in the player's deck
+    Handles the hand functionality of players.
+    Players are able to collect hands and play cards.
+    
     """
+    name: str = "AI"
+    hand: List[Card] = field(default_factory=list) #each player gets their own hand list
+    total_score: int = 0
+    round_score: int = 0
+    bid: int = -1 # must be -1 because 0 is a valid bid
+    trump_decider:bool = False
+    dealer:bool = False
+    computer: bool = True,
+    handicapped_bid:bool = False
 
-    def __init__(self, name = "AI",
-                  total_score:int = 0,
-                    round_score:int = 0,
-                      trump_decider:bool = False,
-                        dealer:bool = False,
-                          computer: bool = True,
-                           handicapped_bid:bool = False):
-        self.name = name
-        self.total_score = total_score
-        self.round_score = round_score
-        self.trump_decider = trump_decider
-        self.dealer = dealer
-        self.computer = computer
-        self.hand = []
-        self.show_hand = False
-        self.bid = -1 # bid is never appended and must can not be 0 by default
-        self.handicapped_bid = handicapped_bid
-
-    def collect_hand(self, hand: list):
-        """
-        Function for receiving hand from the DeckManager
-        """
-        for card in hand: # assigns self as the owner to each card
-            card.owner = self
-
-        self.hand = hand 
-
-        #Creates a hidden version of the hand
-        self.hidden_hand = []
+    def collect_hand(self, hand: List[Card]):
         for card in hand:
-            self.hidden_hand.append('X')
+            card.owner = self
+        self.hand = hand
 
-    def display_hand(self):
-        """
-        Displays current hand in a human format and is always shown
-        """
-
-        temp_list = []
-        self.show_hand = True
-
-        for card in self.hand:
-            temp_list.append(str(card))
-        return temp_list
-
-    def discard_hand(self):
-        """
-        Function for discarding/resetting current hand
-        """
-        self.hand = []
-
-    def remove_card(self, card:Card):
-        """
-        Function for removing card from current hand
-        """
-
+    def remove_card(self, card: Card):
         for _card in self.hand:
             if card == _card:
                 self.hand.remove(_card)
                 print("REMOVED", card, 'From ', self.name)
                 return
 
-    def find_card(self, selected_suit:str, selected_value:str):
-        """
-        Function which returns True or False to verify 
-        whether the card is in the current hand
-        """
+    def find_card(self, selected_suit: str, selected_value: str) -> bool:
         for card in self.hand:
             if card.suit[0].lower() == selected_suit.lower() and card.value[0].lower() == selected_value.lower():
                 return True
         return False
 
+##
     def set_trump_decider(self, boolean: bool):
-        """
-        Function for setting the trump decider value
-        """
         self.trump_decider = boolean
 
+##
     def set_dealer(self):
-        """
-        Function for setting the player as the dealer
-        """
         self.dealer = True
 
-    def reset_bid(self):
-        """
-        Function for resetting the bidding value
-        """
+    def reset(self):
         self.bid = 0
-
-    def reset_dealer_trump_decider(self):
-        """
-        Function for resetting both values of the trump decider and the dealer
-        """
-
         self.dealer = False
         self.trump_decider = False
-        self.handicapped_bid = False
-
-    def reset_show_hand(self):
-        """
-        Function for resetting the boolean of the show_hand
-        """
-        self.show_hand = False
+        self.handicapped_bid = False    
+        self.hand = []    
     
-    def display_hand(self) -> str:
-        """
-        Function for displaying the hand on the screen
-        Return a string of the hand
-        """
-        hand = ""
-
+    ##
+    def display_hand_str(self) -> str:
+        hand_str = ""
         if self.show_hand:
             for card in self.hand:
-                hand += f"{card}\n"
+                hand_str += f"{card}\n"
         else:
-            for card in self.hand:
-                hand += "X " 
-
-        return hand
+            hand_str = "X " * len(self.hand)
+        return hand_str
 
     def __str__(self):
-        return self.name    
-
+        return self.name
