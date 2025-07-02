@@ -1,6 +1,5 @@
 # Contents for the table class in the Nomination game
 
-from queue import Queue
 from .CardClass import Card
 
 class Table():
@@ -18,7 +17,7 @@ class Table():
 
     def __init__(self, max_players: int = 0):
 
-        self.stack = Queue(maxsize=max_players)
+        self.stack = list()
         self.winning_suit = None
         self._stack =[]
 
@@ -30,26 +29,18 @@ class Table():
         Returns a string of the stack in a readable format
         """
 
-        if not self.stack.empty():
+        if self.stack:
             print("stack not empty")
-            #Use a private list to make the queue easier to use
-            
-            while not self.stack.empty():
-                self._stack.append(self.stack.get())
-
-            #readd items to stack
-            for item in self._stack:
-                self.stack.put(item)
 
             string = ""
 
             if visual:
-                for card in self._stack:
+                for card in self.stack:
                     string += f"{card.picture}\n"
                 return string
             else:
-                print("STACKERINO", self._stack)
-                for card in self._stack:
+                print("STACKERINO", self.stack)
+                for card in self.stack:
                     string += f"{card}\n"
                 print("FINAL STRING: ", string)
                 return string
@@ -63,7 +54,7 @@ class Table():
 
         Make sure to manually remove card from player hand
         """
-        self.stack.put(card)
+        self.stack.append(card)
         print("adding to stack, ", self.stack)
 
     
@@ -74,8 +65,7 @@ class Table():
         Returns True if the card is valid and able to be added to the card stack
         Returns False if the card is invalid and is unable to be added to the card stack
         """
-        private_stack = self.stack
-        if not private_stack.empty(): 
+        if self.stack: 
             if first_card.suit:
                 if card.suit[0] == trump_suit.lower() or card.suit[0] == first_card.suit[0]:
                     return True

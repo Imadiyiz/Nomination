@@ -5,7 +5,6 @@ from .DeckClass import Deck
 from .PlayerClass import Player
 from .CardClass import Card
 import random
-from queue import Queue
 from .ScoreboardClass import Scoreboard
 from Utils.tools import clear_screen
 
@@ -18,7 +17,7 @@ class Game():
 
     Attributes:
         game_state (str): Stores the current state of the game
-        player_queue (Queue): A queue which stores the order of which the players are playing
+        player_queue (list): A list which stores the order of which the players are playing
         current_bids (dict): A dictionary which stores the values of the current bids along with the player
         menu_options (dict): A dictionary which stores the current options for the menu
     """
@@ -28,7 +27,6 @@ class Game():
         When initialised, the game object should receive the player parameters
         """
         self.game_state = None
-        self.player_queue = Queue()
         self.current_bids = {}
         self.menu_options = {
             "S": "SHOW HAND",
@@ -53,14 +51,12 @@ class Game():
                 player.name = f"{player.name}{names_dict[player.name]+1}"
                 names_dict[player.name] = 1
 
-        #places the shuffled players into the actual queue in their new order
-        random.shuffle(temp_list)
-        for player in self.player_list:
-            self.player_queue.put(player)
+        #places the shuffled players into the actual list in their new order
+        random.shuffle(self.player_list)
         
-        if self.player_queue.qsize() > 6:
+        if len(self.player_list) > 6:
             raise Exception("Too many players in the game")
-        if self.player_queue.qsize() < 2:
+        if len(self.player_list) < 3:
             raise Exception("Not enough players in the game")
         
         #Creates a dictionary which contains the current bidding amounts per player
@@ -84,9 +80,8 @@ class Game():
         self.game_state = "CREATE_GAME"
         
         #set dealer
-        first_player = self.player_queue.get()
+        first_player = self.player_list[0]
         first_player.set_dealer()
-        self.player_queue.put(first_player)
         
         #generate deck
         self.deck = Deck()
@@ -101,9 +96,9 @@ class Game():
         print("CARD RANDOMLY CHOSEN:: ", self.deck.deck[0])
         print("TRUMP SUIT:: ", self.trump_suit, "\n")
 
-        #Generate scoreboard object, table object and message_queue object
+        #Generate scoreboard object, table object 
         self.scoreboard = Scoreboard(self.player_list)
-        self.table = Table(max_players=self.player_queue.qsize())
+        self.table = Table(max_players=len(self.player_list))
 
     def calculate_banned_number(self, max_cards):
         """
@@ -252,10 +247,8 @@ HAND: {player.display_hand()}
         Function for dealing cards to the players
         """
         #deal cards for player
-        for _ in range(self.player_queue.qsize()):
-            temp_player = self.player_queue.get()
-            temp_player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
-            self.player_queue.put(temp_player)
+        for player in self.player_list:
+            player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
 
     def start_bidding(self, max_cards, round_no:int = 1):
         """
@@ -320,10 +313,9 @@ HAND: {player.display_hand()}
             run = True
             while run:
                 if player.computer:
-                    private_stack = self.table.stack
                     #if the stack is not empty
-                    if not private_stack.empty():
-                        first_card = private_stack.get() #gets the bottom item in stack cause error
+                    if self.table.stack:
+                        first_card = self.table.stack[0] #gets the bottom item in stack cause error
                     else:
                         first_card = None
 
@@ -340,10 +332,9 @@ HAND: {player.display_hand()}
                     if user_choice[0].isdigit():
                         user_choice = int(user_choice[0])
                         if user_choice <= len(player.hand):
-                            private_stack = self.table.stack
                             #if the stack is not empty
-                            if not private_stack.empty():
-                                first_card = private_stack.get() #gets the bottom item in stack cause error
+                            if self.table.stack:
+                                first_card = self.table.stack[0] #gets the first card in stack
                                 print("FIRST CARD, ", first_card)
                             if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card):
                                 #if valid then add it to the queue

@@ -131,7 +131,7 @@ class TestGameClass():
 
     def test_game_generation(self, my_game):
         assert my_game.game_state == "CREATE_GAME"
-        assert my_game.player_queue.qsize() == 4
+        assert len(my_game.player_queue) == 4
         my_game.deck.remove_card("Diamond", "10")
         assert my_game.deck.find_card("Diamond", "10") == False
 
