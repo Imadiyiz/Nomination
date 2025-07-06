@@ -29,3 +29,28 @@ class Scoreboard():
             formatted_scoreboard.append((player,value))
 
         return formatted_scoreboard
+    
+    def update_round_scoreboard(self, player_list:list, winner_card):
+        """
+        Updates the round scoreboard using the player bids and the player score from the round
+        """
+        #update round score winner 
+        for _player in player_list:
+            if _player == winner_card.owner:
+                _player.round_score +=1 
+    
+    def update_total_scoreboard(self, player_list:list, max_cards: int = 8):
+        """
+        Updates the total scoreboard using the player bids and the player score from the round
+        """
+
+        for _player in player_list:
+            #check if they got their score correct
+            if _player.bid == max_cards and _player.round_score == _player.bid:
+                self.scoreboard[_player.name] += (_player.bid + 10)*2
+
+            if _player.bid == _player.round_score:
+                self.scoreboard[_player.name] += _player.bid + 10
+            else:
+                self.scoreboard[_player.name] += _player.round_score
+

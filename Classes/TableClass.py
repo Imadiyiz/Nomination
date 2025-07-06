@@ -62,27 +62,28 @@ class Table():
         if self.stack: 
             if first_card.suit:
                 #determine whether they have to play a first suit/trump 
-                for card in player_hand:
-                    if card.suit[0].lower() == first_card.suit[0].lower():
+                for _card in player_hand:
+                    if _card.suit[0].lower() == first_card.suit[0].lower():
                         forced = True
                 if not forced:
                     return True
-
-                #must play first card or trump
-                if card.suit[0].lower() == trump_suit.lower() or card.suit[0].lower() == first_card.suit[0].lower():
+                print(forced)
+                print(card.suit)
+                #must play first card suit
+                if card.suit[0].lower() == first_card.suit[0].lower():
                     return True
                 else:
                     return False
         return True
 
 
-    def verify_winner(self, trump_suit: str):
+    def verify_winner(self, trump_suit: str) -> Card:
         """
         Function for determining who is currently winning the stack on the table
 
         Must know what the trump suit is, to correctly verify the winner
 
-        Returns the owner of the winning card
+        Returns the winning card
         """
         #reset winning card and suits
         winning_card = None
@@ -112,9 +113,10 @@ class Table():
         return winning_card # will have to manually query for the owner
 
 
-    def reset_winning_suit(self):
+    def reset(self):
         """
-        Function which resets the winning suit in the stack
+        Function which resets the stack
         """
 
         self.winning_suit = None
+        self.stack = list()

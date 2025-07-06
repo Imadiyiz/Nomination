@@ -9,7 +9,6 @@ import pytest
 from Classes.GameManager import Game
 from Classes.UIManager import UIManager
 from Classes.BiddingManager import BiddingManager
-from Classes.RoundManager import RoundManager
 
 
 #NEED TO TEST EVERY SINGLE FUNCTION FOR THE DECK
@@ -56,3 +55,4 @@ class TestClass:
     def test_start_round(self,my_game):
             my_game.create_game()
             my_game.start_round(max_cards=8)
+            my_game.start_round(max_cards=7)

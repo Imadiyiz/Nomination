@@ -325,6 +325,7 @@ HAND: {player.display_hand_str()}
         """
         user_choice = ""
         self.game_state = "PLAYING START"
+        self.table.reset()
 
         for player in self.player_list:
             first_card = None
@@ -355,24 +356,25 @@ HAND: {player.display_hand_str()}
                             if self.table.stack:
                                 first_card = self.table.stack[0] #gets the first card in stack
                                 print("FIRST CARD, ", first_card)
+                                print("CHOSEN CARD, ", player.hand[user_choice])
                             if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card, player_hand = player.hand):
                                 #if valid then add it to the queue
                                 self.table.add_to_stack(card=player.hand[user_choice])
                                 player.remove_card(card=player.hand[user_choice])
                                 run = False
                             else:
-                                #no duplicate suits
-                                if self.trump_suit.lower() != first_card.suit[0].lower():
-                                    print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {self.trump_suit} or {first_card.suit[0]}")
-                                else:
-                                    print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {self.trump_suit}")
+                                print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
                         else:
                             print(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
                     else:
                         print("INVALID OPTION")
 
         winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
+        
         self.UIManager.display_message(message=f"DONE, {winner_card.owner} is the winner with {winner_card}")
+        self.scoreboard.update_round_scoreboard(player_list=self.player_list, winner_card=winner_card)
+        self.scoreboard.update_total_scoreboard(self.player_list)
+
 
 
     def decide_trump(self, player:Player):
