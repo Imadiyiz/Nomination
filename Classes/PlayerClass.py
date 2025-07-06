@@ -30,7 +30,6 @@ class Player:
         for _card in self.hand:
             if card == _card:
                 self.hand.remove(_card)
-                print("REMOVED", card, 'From ', self.name)
                 return
 
     def find_card(self, selected_suit: str, selected_value: str) -> bool:

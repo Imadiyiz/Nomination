@@ -49,7 +49,7 @@ class Table():
         self.stack.append(card)
 
     
-    def valid_add_to_stack(self, card: Card = None, trump_suit: str = None, first_card: Card = None):
+    def valid_add_to_stack(self, card: Card = None, trump_suit: str = None, first_card: Card = None, player_hand: list = []) -> bool:
         """
         Function for verifying whether the card is able to be played in the current deck
 
@@ -57,14 +57,22 @@ class Table():
         Returns False if the card is invalid and is unable to be added to the card stack
         """
 
+        forced = False
         #multiple iterations happen with the computer as I havent programmed sound logic for them
         if self.stack: 
             if first_card.suit:
+                #determine whether they have to play a first suit/trump 
+                for card in player_hand:
+                    if card.suit[0].lower() == first_card.suit[0].lower():
+                        forced = True
+                if not forced:
+                    return True
+
+                #must play first card or trump
                 if card.suit[0].lower() == trump_suit.lower() or card.suit[0].lower() == first_card.suit[0].lower():
                     return True
                 else:
                     return False
-            return True
         return True
 
 

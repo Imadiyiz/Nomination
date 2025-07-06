@@ -355,13 +355,17 @@ HAND: {player.display_hand_str()}
                             if self.table.stack:
                                 first_card = self.table.stack[0] #gets the first card in stack
                                 print("FIRST CARD, ", first_card)
-                            if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card):
+                            if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card, player_hand = player.hand):
                                 #if valid then add it to the queue
                                 self.table.add_to_stack(card=player.hand[user_choice])
                                 player.remove_card(card=player.hand[user_choice])
                                 run = False
                             else:
-                                print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {self.trump_suit} or {first_card.suit[0]}")
+                                #no duplicate suits
+                                if self.trump_suit.lower() != first_card.suit[0].lower():
+                                    print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {self.trump_suit} or {first_card.suit[0]}")
+                                else:
+                                    print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {self.trump_suit}")
                         else:
                             print(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
                     else:
