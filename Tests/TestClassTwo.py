@@ -44,7 +44,8 @@ def my_game():
     player2 = Player(name="Haider", computer=False)
     player3 = Player()
     player4 = Player()
-    my_list = [player, player2, player3, player4]
+    player5 = Player()
+    my_list = [player, player2, player3, player4, player5]
     game = Game(my_list)
     return game
 

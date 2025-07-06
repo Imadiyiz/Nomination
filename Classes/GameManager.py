@@ -46,13 +46,16 @@ class Game():
         ##
         #reset players and remove duplicate names
         names_dict = {}
+        count = 2
+        run  = True
         for player in self.player_list:
             player.reset()
             if player.name not in names_dict:
                 names_dict[player.name] = 1
             else:
-                player.name = f"{player.name}{names_dict[player.name]+1}"
-                names_dict[player.name] = 1
+                player.name += str(count)
+                names_dict[player.name] = count
+                count +=1
 
         #places the shuffled players into the actual list in their new order
         random.shuffle(self.player_list)
@@ -327,6 +330,7 @@ HAND: {player.display_hand_str()}
             first_card = None
             run = True
             while run:
+                print("\n\n\n\nITERATION", player)
                 if player.computer:
                     #if the stack is not empty
                     if self.table.stack:
@@ -363,7 +367,8 @@ HAND: {player.display_hand_str()}
                     else:
                         print("INVALID OPTION")
 
-        print("Done")
+        winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
+        self.UIManager.display_message(message=f"DONE, {winner_card.owner} is the winner with {winner_card}")
 
 
     def decide_trump(self, player:Player):

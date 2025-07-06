@@ -47,7 +47,6 @@ class Table():
         Make sure to manually remove card from player hand
         """
         self.stack.append(card)
-        print("adding to stack, ", self.stack)
 
     
     def valid_add_to_stack(self, card: Card = None, trump_suit: str = None, first_card: Card = None):
@@ -57,9 +56,11 @@ class Table():
         Returns True if the card is valid and able to be added to the card stack
         Returns False if the card is invalid and is unable to be added to the card stack
         """
+
+        #multiple iterations happen with the computer as I havent programmed sound logic for them
         if self.stack: 
             if first_card.suit:
-                if card.suit[0] == trump_suit.lower() or card.suit[0] == first_card.suit[0]:
+                if card.suit[0].lower() == trump_suit.lower() or card.suit[0].lower() == first_card.suit[0].lower():
                     return True
                 else:
                     return False
@@ -83,25 +84,23 @@ class Table():
         for card in self.stack:
             if card.suit[0].lower() == trump_suit.lower():
                 trumped = True
-                break
 
         #trumped cards are in the stack
         if trumped:
             for card in self.stack:
-                if card.suit[0] == trump_suit.lower():
+                if card.suit[0].lower() == trump_suit.lower():
                     if winning_card is None or card.value[1] > winning_card.value[1]:
                         winning_card = card
         else:
         #No trumps in stack
             for card in self.stack:
                 if winning_card:
-                    if card.suit[0].lower() == self.winning_suit:
+                    if card.suit[0].lower() == self.winning_suit.lower():
                         if card.value[1] > winning_card.value[1]:
                             winning_card = card
                 else:
                     winning_card = card
                     self.winning_suit = card.suit[0].lower()
-
         return winning_card # will have to manually query for the owner
 
 
