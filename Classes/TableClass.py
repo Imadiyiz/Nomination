@@ -67,8 +67,6 @@ class Table():
                         forced = True
                 if not forced:
                     return True
-                print(forced)
-                print(card.suit)
                 #must play first card suit
                 if card.suit[0].lower() == first_card.suit[0].lower():
                     return True

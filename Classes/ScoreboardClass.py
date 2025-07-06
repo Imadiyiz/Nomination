@@ -17,6 +17,8 @@ class Scoreboard():
         for player_list in args: #max 6
             for player in player_list:
                 self.scoreboard[player.name] = 0 #sets score to 0
+
+
         
     def display(self) -> list:
         """
@@ -38,6 +40,7 @@ class Scoreboard():
         for _player in player_list:
             if _player == winner_card.owner:
                 _player.round_score +=1 
+                self.scoreboard[_player.name] = _player.round_score
     
     def update_total_scoreboard(self, player_list:list, max_cards: int = 8):
         """

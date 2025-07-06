@@ -37,17 +37,6 @@ def setup_game():
 
         return game
 
-def start_bidding(amount: int = 8, game: Game = None):
-    """
-    Starts the bidding round
-    """
-
-    game.start_bidding(amount)
-
-
-
-     
-
 game = setup_game()
 clear_screen(1) #5
 # At this point the bidding is complete
@@ -55,6 +44,9 @@ clear_screen(1) #5
 for round, value in enumerate(cards_per_round):  
     game.start_bidding(max_cards=value, round_no=round+1) 
     game.start_round(max_cards=round)
+
+#my_game.scoreboard.update_total_scoreboard(my_game.player_list)
+
 
 #gameloop
 while True:

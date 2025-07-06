@@ -331,7 +331,6 @@ HAND: {player.display_hand_str()}
             first_card = None
             run = True
             while run:
-                print("\n\n\n\nITERATION", player)
                 if player.computer:
                     #if the stack is not empty
                     if self.table.stack:
@@ -355,8 +354,6 @@ HAND: {player.display_hand_str()}
                             #if the stack is not empty
                             if self.table.stack:
                                 first_card = self.table.stack[0] #gets the first card in stack
-                                print("FIRST CARD, ", first_card)
-                                print("CHOSEN CARD, ", player.hand[user_choice])
                             if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card, player_hand = player.hand):
                                 #if valid then add it to the queue
                                 self.table.add_to_stack(card=player.hand[user_choice])
@@ -373,7 +370,6 @@ HAND: {player.display_hand_str()}
         
         self.UIManager.display_message(message=f"DONE, {winner_card.owner} is the winner with {winner_card}")
         self.scoreboard.update_round_scoreboard(player_list=self.player_list, winner_card=winner_card)
-        self.scoreboard.update_total_scoreboard(self.player_list)
 
 
 
@@ -421,10 +417,8 @@ ROUND SCOREBOARD{round_scoreboard}
 TRUMP: {self.trump_suit}
 HAND:\n {hand_str}
 STACK: {stack_str}
-
 ENTER THE INDEX VALUE OF THE CARD YOU WANT TO PLAY
-E.G (Enter "0" for '{player.hand[0]}')
-MAX VALUE: {len(player.hand)-1}\n"""
+INPUT RANGE: {0}-{len(player.hand)-1}\n"""
         return _string
     
 """ TODO: Need to fix the logic with the show hand. I should just show the hand and then play the 
