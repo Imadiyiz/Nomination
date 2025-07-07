@@ -9,6 +9,7 @@ from .ScoreboardClass import Scoreboard
 from .UIManager import UIManager
 from Utils.tools import clear_screen
 from .BiddingManager import BiddingManager
+from .PlayerStateManager import PlayerStateManager
 
 class Game():
     """
@@ -20,7 +21,6 @@ class Game():
     Attributes:
         game_state (str): Stores the current state of the game
         player_queue (list): A list which stores the order of which the players are playing
-        current_bids (dict): A dictionary which stores the values of the current bids along with the player
         menu_options (dict): A dictionary which stores the current options for the menu
     """
 
@@ -36,31 +36,36 @@ class Game():
 
         #creates a temp list with the player objects in
         temp_list = []
+        temp_set = set()
         for List in args:
             for player in List:
                 temp_list.append(player)
 
-        self.player_list = temp_list
+        self.player_set = set()
+        self.player_queue = temp_list #queue for playing during rounds
+        self.original_queue = temp_list #queue for after round when winning the hand does not affect the order
 
         ##
         #reset players and remove duplicate names
         names_dict = {}
         count = 2
-        for player in self.player_list:
+        for player in self.player_queue:
             player.reset()
             if player.name not in names_dict:
                 names_dict[player.name] = 1
+                self.player_set.add(player)
             else:
                 player.name += str(count)
                 names_dict[player.name] = count
+                self.player_set.add(player)
                 count +=1
 
         #places the shuffled players into the actual list in their new order
-        random.shuffle(self.player_list)
+        random.shuffle(self.player_queue)
         
-        if len(self.player_list) > 6:
+        if len(self.player_set) > 6:
             raise Exception("Too many players in the game")
-        if len(self.player_list) < 3:
+        if len(self.player_set) < 3:
             raise Exception("Not enough players in the game")
 
     
@@ -71,11 +76,6 @@ class Game():
 
         """
         self.game_state = "CREATE_GAME"
-        
-        #set dealer
-        first_player = self.player_list[0]
-        first_player.set_dealer()
-        #need to change dealer after the round
         
         #generate deck
         self.deck = Deck()
@@ -88,10 +88,11 @@ class Game():
         print("TRUMP SUIT:: ", self.trump_suit, "\n")
 
         #Generate scoreboard object, table object 
-        self.scoreboard = Scoreboard(self.player_list)
-        self.table = Table(max_players=len(self.player_list))
+        self.scoreboard = Scoreboard(self.player_set)
+        self.table = Table(max_players=len(self.player_set))
         self.UIManager = UIManager()
-        self.biddingManager = BiddingManager(self.player_list)
+        self.biddingManager = BiddingManager(self.player_set)
+        self.playerStateManager = PlayerStateManager(self.player_set)
 
 
     def player_bid(self, player:Player=None, max_cards: int = 6):
@@ -104,6 +105,9 @@ class Game():
             player (Player): The player instance which is performing the bidding
         """
 
+        #reorders the dictionary 
+        self.biddingManager.reorder_current_bids(self.player_queue)
+        
         not_allowed = self.biddingManager.calculate_banned_number(max_cards)
         #check for handicap
         if player.handicapped_bid:
@@ -171,6 +175,8 @@ HAND: {player.display_hand_str()}
 f"""{player}'s TURN BIDDING
 
 CURRENT BIDS: {self.current_bids}
+
+pusews
 TRUMP: {self.trump_suit.upper()}
 HAND: {player.display_hand_str()}
 
@@ -238,7 +244,7 @@ HAND: {player.display_hand_str()}
         self.deck.generate_deck()
 
         #deal cards for player
-        for player in self.player_list:
+        for player in self.player_set:
             player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
 
     def start_bidding(self, max_cards, round_no:int = 1):
@@ -248,9 +254,12 @@ HAND: {player.display_hand_str()}
         clear_screen()
         self.game_state = "BIDDING START"
 
-        ##
+        #dealer shifts eveery time bidding starts
+        self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
+        self.player_queue = self.original_queue#
+
         #last person has a handicapped bid
-        self.player_list[-1].handicapped_bid = True
+        self.player_queue[-1].handicapped_bid = True
 
         #reset bidding values
         self.biddingManager.reset_bids()
@@ -258,8 +267,8 @@ HAND: {player.display_hand_str()}
         #Bidding output begins
         print(f"""\nBIDDING BEGINS\n""")
 
-        #Loop for every player in the list
-        for player in self.player_list:
+        #Loop for every player in the list since order matters
+        for player in self.player_queue:
 
             #if human, use the player bid menu
             if player.computer == False:
@@ -305,7 +314,7 @@ HAND: {player.display_hand_str()}
         self.game_state = "PLAYING START"
         self.table.reset()
 
-        for player in self.player_list:
+        for player in self.player_queue:
             first_card = None
             run = True
             while run:
@@ -347,10 +356,12 @@ HAND: {player.display_hand_str()}
         winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
         
         self.UIManager.display_message(message=f"DONE, {winner_card.owner} is the winner with {winner_card}")
-        self.scoreboard.update_round_scoreboard(player_list=self.player_list, winner_card=winner_card)
+        self.scoreboard.update_round_scoreboard(self.player_set, winner_card=winner_card)
+        self.player_queue = self.playerStateManager.update_winner_order(self.player_queue)
 
+        
 
-
+        
     def decide_trump(self, player:Player):
         """Function for determining the trump for the next round
         Useful for the subsequent rounds of the game"""
@@ -416,4 +427,10 @@ Late programming session where I have updated the test, the round scoring logic 
 Now I just need to fix the bidding UI and the glitch where the second to last player is unable to bid what they want
 
 I dont know why we keep bidding in the middle of rounds
+
+Finished the CLI work and now the game works
+now just to set up testing tables
+
+need to allow the winner of the previous round to pick the next trump, also the dealer each round needs to change
+if you win the hand you should go first
 """

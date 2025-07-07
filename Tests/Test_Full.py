@@ -57,6 +57,7 @@ class TestClass:
             cards_per_round = [8,7,6,6,7,8]
 
             for round, value in enumerate(cards_per_round):  
+                my_game.playerStateManager.update_dealer_order(my_game.player_queue)
                 my_game.deal_cards(amount_to_deal =value) #deals hand for next round
                 my_game.start_bidding(max_cards=value, round_no=round+1) 
                 for _ in range(value):

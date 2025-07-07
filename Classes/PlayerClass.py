@@ -17,7 +17,6 @@ class Player:
     round_score: int = 0
     bid: int = -1 # must be -1 because 0 is a valid bid
     trump_decider:bool = False
-    dealer:bool = False
     computer: bool = True,
     handicapped_bid:bool = False
 
@@ -42,13 +41,8 @@ class Player:
     def set_trump_decider(self, boolean: bool):
         self.trump_decider = boolean
 
-##
-    def set_dealer(self):
-        self.dealer = True
-
     def reset(self):
         self.bid = -1
-        self.dealer = False
         self.trump_decider = False
         self.handicapped_bid = False    
         self.hand = []    
@@ -66,3 +60,9 @@ class Player:
 
     def __str__(self):
         return self.name
+    
+    def __eq__(self, other):
+        return isinstance(other, Player) and self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)

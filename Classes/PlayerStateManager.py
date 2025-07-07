@@ -12,7 +12,7 @@ class PlayerStateManager():
     *Resets Players
     *QUery player hand if necessary
     """
-    def __init__(self, players):
+    def __init__(self, players:set):
         self.players = players # list of player objects
         self.current_turn = 0
 
@@ -25,16 +25,38 @@ class PlayerStateManager():
 
     def add_score(self, player:Player, points: int):
         player.total_score += points
-
-    def set_dealer(self, player:Player):
-        player.dealer = True
-
-    def get_dealer(self):
-        for player in self.players:
-            if player.dealer:
-                return player
-        return None
             
+    def update_dealer_order(self, player_queue: list):
+        """
+        Function for updating the dealer and changing the order of play
+
+        Returns player queue
+        """
+
+        moving_player = player_queue[0]
+        player_queue.append(moving_player)
+        #should be a duplicate so first occurance is deleted
+        player_queue.remove(moving_player)
+
+        return player_queue
+
+    def update_winner_order(self, winner:Player, player_queue:list):
+        """
+        Function for updating the order of the play depending on which player won the round
+
+        Returns player queue
+        """
+
+        found = False
+        while not found:
+            if player_queue[0] == winner:
+                found = True
+                return
+            selected_player= player_queue[0]
+            player_queue.append(selected_player)
+            player_queue.remove(selected_player)
+        
+        return player_queue
 
 
 

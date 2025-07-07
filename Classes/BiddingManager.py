@@ -21,6 +21,19 @@ class BiddingManager():
         #bids start with 'X'
         self.current_bids = {p.name: 'X' for p in players}
 
+    def reorder_current_bids(self, player_queue: list):
+        """
+        Function for reordering the current bids dictionary
+        """
+
+        temp_dict = {}
+        for player in player_queue:
+            if player.bid > -1:
+                temp_dict[player.name] = player.bid
+            else:
+                temp_dict[player.name] = 'X'
+        self.current_bids = temp_dict
+
     def update_current_bids(self):
         """
         Function for updating the current bids scoreboard ensuring it stays in sync
@@ -58,13 +71,12 @@ class BiddingManager():
         """
 
         banned = int()
-        #calculate banned number
-        print("VALUES")
-        for value in self.current_bids.values():
-            print(value)
         for number in self.current_bids.values():
             if number != 'X' and number >= 0:
                 banned += int(number)
         banned = max_cards - banned  
 
         return banned
+    
+
+# TODO: CURRENT BIDS IS NOT IN THE RIGHT ORDER
