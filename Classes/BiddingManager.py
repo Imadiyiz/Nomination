@@ -21,7 +21,7 @@ class BiddingManager():
         #bids start with 'X'
         self.current_bids = {p.name: 'X' for p in players}
 
-    def update_current_bid(self):
+    def update_current_bids(self):
         """
         Function for updating the current bids scoreboard ensuring it stays in sync
         """
@@ -50,13 +50,20 @@ class BiddingManager():
     def reset_bids(self):
         for player in self.players:
             player.reset_bid()
+            self.current_bids[player.name] = 'X'
+        
+    def calculate_banned_number(self, max_cards):
+        """
+        Function for calculating the banned number the player is unable to bid this round
+        """
 
-    def calculate_banned_number(self, max_cards) -> int:
-        """Calculate the bid value that is not allowed (handicap)"""
         banned = int()
         #calculate banned number
+        print("VALUES")
+        for value in self.current_bids.values():
+            print(value)
         for number in self.current_bids.values():
-            if number != 'X':
+            if number != 'X' and number >= 0:
                 banned += int(number)
         banned = max_cards - banned  
 

@@ -29,7 +29,6 @@ class Game():
         When initialised, the game object should receive the player parameters
         """
         self.game_state = None
-        self.current_bids = {}
         self.menu_options = {
             "S": "SHOW HAND",
             "B": "BID" 
@@ -47,7 +46,6 @@ class Game():
         #reset players and remove duplicate names
         names_dict = {}
         count = 2
-        run  = True
         for player in self.player_list:
             player.reset()
             if player.name not in names_dict:
@@ -64,19 +62,8 @@ class Game():
             raise Exception("Too many players in the game")
         if len(self.player_list) < 3:
             raise Exception("Not enough players in the game")
-        
-        #Creates a dictionary which contains the current bidding amounts per player
-        for player in self.player_list:
-            self.current_bids[player.name] = 'X'
 
-    def update_current_bids(self):
-        """
-        Function for updating the current bids scoreboard ensuring it stays in sync
-        """
-
-        for player in self.player_list:
-            if player.bid > -1:
-                self.current_bids[player.name] = player.bid
+    
 
     def create_game(self):
         """
@@ -88,12 +75,10 @@ class Game():
         #set dealer
         first_player = self.player_list[0]
         first_player.set_dealer()
+        #need to change dealer after the round
         
         #generate deck
         self.deck = Deck()
-
-        #deal cards
-        self.deal_cards(amount_to_deal=8)
         
         #determine trump
         #since deck is already shuffled, should be ok to pick first card
@@ -108,20 +93,7 @@ class Game():
         self.UIManager = UIManager()
         self.biddingManager = BiddingManager(self.player_list)
 
-    def calculate_banned_number(self, max_cards):
-        """
-        Function for calculating the banned number the player is unable to bid this round
-        """
 
-        banned = int()
-        #calculate banned number
-        for number in self.current_bids.values():
-            if number != 'X':
-                banned += int(number)
-        banned = max_cards - banned  
-
-        return banned
-        
     def player_bid(self, player:Player=None, max_cards: int = 6):
         """
         High level block of player making bid, handles validation of input
@@ -143,7 +115,7 @@ class Game():
         if user_input[0].strip():
                 user_input = int(user_input[0])
                 if user_input == not_allowed:
-                    self.UIManager.display_message(f"Unable to bid that amount")
+                    self.UIManager.display_message(f"Unable to bid that amount, {not_allowed}, user input {user_input}, {self.biddingManager.calculate_banned_number}")
                     return False
                 if user_input < 9:
                     
@@ -163,10 +135,8 @@ class Game():
             Function for creating the player bid menu, ensuring that the computer players do not need the menu
             """
 
-            player.reset_bid()            
 
             self.menu_options = {
-                        'S': 'SHOW HAND',
                         'B': 'BID'
                         }
             menu_options_string = self.create_menu_options_string()
@@ -174,9 +144,9 @@ class Game():
             bidding_menu = (
 f"""{player}'s TURN BIDDING
 
-CURRENT BIDS: {self.current_bids}
+CURRENT BIDS: {self.biddingManager.current_bids}
 TRUMP: {self.trump_suit.upper()}
-HAND: {player.hidden_hand}
+HAND: {player.display_hand_str()}
 
 {menu_options_string}
 """)                
@@ -240,12 +210,12 @@ HAND: {player.display_hand_str()}
 
 
         player.bid = bid
-        self.current_bids[player.name] = player.bid
-        self.update_current_bids()
         if bid == 1:
-            print(f"{player.name} Bid 1 Card")
+            self.UIManager.display_message(f"{player.name} Bid 1 Card")
         else:
-            print(f"{player.name} Bid {player.bid} Cards")
+            self.UIManager.display_message(f"{player.name} Bid {player.bid} Cards")
+
+        self.biddingManager.update_current_bids()
         return True
                 
         
@@ -263,6 +233,10 @@ HAND: {player.display_hand_str()}
         """
         Function for dealing cards to the players
         """
+
+        #generates new deck
+        self.deck.generate_deck()
+
         #deal cards for player
         for player in self.player_list:
             player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
@@ -277,13 +251,15 @@ HAND: {player.display_hand_str()}
         ##
         #last person has a handicapped bid
         self.player_list[-1].handicapped_bid = True
+
+        #reset bidding values
+        self.biddingManager.reset_bids()
         
         #Bidding output begins
         print(f"""\nBIDDING BEGINS\n""")
 
         #Loop for every player in the list
         for player in self.player_list:
-            player.reset_bid() 
 
             #if human, use the player bid menu
             if player.computer == False:
@@ -291,7 +267,7 @@ HAND: {player.display_hand_str()}
             else:
                  #check for handicap
                 if player.handicapped_bid:
-                    banned = self.calculate_banned_number(max_cards=max_cards)     
+                    banned = self.biddingManager.calculate_banned_number(max_cards=max_cards)     
                     # apply param if handicapped  
                     self.computer_bid(player=player, not_allowed=banned)
                 else:
@@ -299,11 +275,13 @@ HAND: {player.display_hand_str()}
 
         #end bidding information
         clear_screen()
-        print(f"{self.current_bids}\n")
+
+        #output current bids
+        print(f"CURRENT BIDS: {self.biddingManager.current_bids}\n")
 
         #calculate + or - round
         total_bids = 0
-        for bid in self.current_bids.values():
+        for bid in self.biddingManager.current_bids.values():
             total_bids += bid
         if total_bids > max_cards:
             print(f"+{total_bids-max_cards} ROUND")
@@ -360,11 +338,11 @@ HAND: {player.display_hand_str()}
                                 player.remove_card(card=player.hand[user_choice])
                                 run = False
                             else:
-                                print(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
+                                self.UIManager.display_message(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
                         else:
-                            print(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
+                            self.UIManager.display_message(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
                     else:
-                        print("INVALID OPTION")
+                        self.UIManager.display_message("INVALID OPTION")
 
         winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
         
@@ -407,7 +385,6 @@ HAND: {player.display_hand_str()}
         PLAY_cARD, 
         """
         round_scoreboard = self.scoreboard.display()
-        player.show_hand = True #Forces hand to be able to be seen
         hand_str = player.display_hand_str()
         stack_str = self.table.display_stack()
         _string = f"""
@@ -432,5 +409,11 @@ I have made some impressive progress in the gaming journey however, I am ready t
 Good progress today. 02/07/25
 
 Need to fix error where if someone doesnt have trump or starting card they are free to play what they want
+06/07/25
 
+Late programming session where I have updated the test, the round scoring logic and the hand playing logic
+
+Now I just need to fix the bidding UI and the glitch where the second to last player is unable to bid what they want
+
+I dont know why we keep bidding in the middle of rounds
 """

@@ -47,7 +47,7 @@ class Player:
         self.dealer = True
 
     def reset(self):
-        self.bid = 0
+        self.bid = -1
         self.dealer = False
         self.trump_decider = False
         self.handicapped_bid = False    
@@ -56,12 +56,13 @@ class Player:
     ##
     def display_hand_str(self) -> str:
         hand_str = ""
-        if self.show_hand:
-            for card in self.hand:
-                hand_str += f"{card}\n"
-        else:
-            hand_str = "X " * len(self.hand)
+        for card in self.hand:
+            hand_str += f"{card}\n"
+
         return hand_str
+
+    def reset_bid(self):
+        self.bid = -1
 
     def __str__(self):
         return self.name
