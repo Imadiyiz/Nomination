@@ -100,25 +100,24 @@ class Game():
         self.biddingManager = BiddingManager(self.player_set)
         self.playerStateManager = PlayerStateManager(self.player_set)
         
-        #last person has a handicapped bid
-        self.player_queue[-1].handicapped_bid = True
 
     def handle_bidding_phase(self):
         """
         Cards are dealt for players, and reset
         """
+
+        #dealer shifts eveery time bidding starts
+        if self.round > 1:
+            self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
+            self.player_queue = self.original_queue
         
         self.player_queue[-1].handicapped_bid = True
         self.biddingManager.reset_bids()
         self.deck.generate_deck()
         self.deal_cards(amount_to_deal=self.cards_per_round[self.round - 1])
 
-        #dealer shifts eveery time bidding starts
-        self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
-        self.player_queue = self.original_queue
-
         #starts the bidding process
-        self.start_bidding(max_cards=self.cards_per_round[self.round-1], round_no=self.round)
+        self.start_bidding(round_no=self.round)
         self.phase = "playing"
 
     def handle_playing_phase(self):
@@ -128,6 +127,8 @@ class Game():
         for _ in range(cards):
             self.start_round()
         self.phase = "scoring"
+        if self.round > 1:
+            self.decide_trump()
     
     def handle_scoring_phase(self):
         """
@@ -141,7 +142,7 @@ class Game():
             self.phase = "game_over"
         
 
-    def player_bid(self, player:Player=None, max_cards: int = 6):
+    def player_bid(self, player:Player=None):
         """
         High level block of player making bid, handles validation of input
 
@@ -154,9 +155,10 @@ class Game():
         #reorders the dictionary 
         self.biddingManager.reorder_current_bids(self.player_queue)
         
-        not_allowed = self.biddingManager.calculate_banned_number(max_cards)
+        _max_cards = self.cards_per_round[self.round - 1]
+        not_allowed = self.biddingManager.calculate_banned_number(_max_cards)
         #check for handicap
-        if player.handicapped_bid:
+        if player.handicapped_bid and not_allowed > -1:
             user_input = self.UIManager.get_player_input(f"ENTER BID (BANNED: {not_allowed})\n")
         else:
             user_input = self.UIManager.get_player_input("ENTER BID\n")
@@ -180,10 +182,13 @@ class Game():
                         self.UIManager.display_message("Unable to bid that amount")
                     return True
                 
-    def create_player_bid_menu(self, player:Player = None, max_cards:int = None, round_no:int = 1):
+    def create_player_bid_menu(self, player:Player = None, round_no:int = 1):
             """
             Function for creating the player bid menu, ensuring that the computer players do not need the menu
             """
+            _max_cards = self.cards_per_round[self.round - 1]
+            self.biddingManager.reorder_current_bids(self.player_queue)
+            _current_bids = self.biddingManager.current_bids
             self.menu_options = {
                         'B': 'BID'
                         }
@@ -192,7 +197,7 @@ class Game():
             bidding_menu = (
 f"""{player}'s TURN BIDDING
 
-CURRENT BIDS: {self.biddingManager.current_bids}
+CURRENT BIDS: {_current_bids }
 TRUMP: {self.trump_suit.upper()}
 HAND: {player.display_hand_str()}
 
@@ -203,8 +208,8 @@ HAND: {player.display_hand_str()}
 
                 #cleans screen before printing the bidding menu
                 clear_screen()
-                print(f"""ROUND {round_no}: {max_cards} CARDS PER HAND\n""")
-                user_input = input((bidding_menu))
+                print(f"""ROUND {round_no}: {_max_cards} CARDS PER HAND\n""")
+                user_input = self.UIManager.get_player_input((bidding_menu))
 
                 if user_input[0].upper() in self.menu_options:
                         if user_input[0].upper() == "S":
@@ -215,17 +220,7 @@ HAND: {player.display_hand_str()}
                         }
                             #updates the bidding options
                             menu_options_string = self.create_menu_options_string()
-                            bidding_menu = (
-f"""{player}'s TURN BIDDING
-
-CURRENT BIDS: {self.current_bids}
-
-pusews
-TRUMP: {self.trump_suit.upper()}
-HAND: {player.display_hand_str()}
-
-{menu_options_string}
-""")
+                            
                         elif user_input[0].upper() == 'B':
                         #player gets to enter bid
                             run = True
@@ -234,11 +229,11 @@ HAND: {player.display_hand_str()}
                                 #check for handicap
                                 if player.handicapped_bid:
                                     # apply param if handicapped  
-                                    if self.player_bid(player=player, max_cards=max_cards):
+                                    if self.player_bid(player=player):
                                         run = False
                                         bid_complete = True
                                 else:
-                                    if self.player_bid(player=player) == True:
+                                    if self.player_bid(player=player):
                                         run = False
                                         bid_complete = True
                                     else:
@@ -290,12 +285,13 @@ HAND: {player.display_hand_str()}
         for player in self.player_set:
             player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
 
-    def start_bidding(self, max_cards, round_no:int = 1):
+    def start_bidding(self, round_no:int = 1):
         """
         Function for the functionality of the bidding round
         """
         clear_screen()
         self.phase = "bidding"
+        _max_cards = self.cards_per_round[self.round - 1]
         
         #Bidding output begins
         print(f"""\nBIDDING BEGINS\n""")
@@ -305,11 +301,11 @@ HAND: {player.display_hand_str()}
 
             #if human, use the player bid menu
             if player.computer == False:
-                self.create_player_bid_menu(player, max_cards=max_cards, round_no = round_no)
+                self.create_player_bid_menu(player, round_no = round_no)
             else:
                  #check for handicap
                 if player.handicapped_bid:
-                    banned = self.biddingManager.calculate_banned_number(max_cards=max_cards)     
+                    banned = self.biddingManager.calculate_banned_number(max_cards=_max_cards)     
                     # apply param if handicapped  
                     self.computer_bid(player=player, not_allowed=banned)
                 else:
@@ -319,16 +315,17 @@ HAND: {player.display_hand_str()}
         clear_screen()
 
         #output current bids
-        print(f"CURRENT BIDS: {self.biddingManager.current_bids}\n")
+        print(f"CURRENT BIDS: {self.biddingManager.current_bids}\n") #may need updating beforehand
+        print("ERROR HERE")
 
         #calculate + or - round
         total_bids = 0
         for bid in self.biddingManager.current_bids.values():
             total_bids += bid
-        if total_bids > max_cards:
-            print(f"+{total_bids-max_cards} ROUND")
+        if total_bids > _max_cards:
+            print(f"+{total_bids-_max_cards} ROUND")
         else:
-            print(f"-{max_cards-total_bids} ROUND")
+            print(f"-{_max_cards-total_bids} ROUND")
 
     def start_round(self):
         """
@@ -381,7 +378,7 @@ HAND: {player.display_hand_str()}
 
     def score_round(self):
         """
-        Function for scoring the round and updating player scores
+        Function for scoring on a play by play basis (multiple times per round)
         """
 
         winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
@@ -389,32 +386,63 @@ HAND: {player.display_hand_str()}
         self.UIManager.display_message(message=f"DONE, {winning_player} is the winner with {winner_card}")
         self.scoreboard.update_round_scoreboard(self.player_set, winner_card=winner_card)
         self.player_queue = self.playerStateManager.update_winner_order(winner=winning_player, player_queue=self.player_queue)
-        self.decide_trump(player=winning_player)
-
-
-    def decide_trump(self, player:Player):
-        """Function for determining the trump for the next round
-        Useful for the subsequent rounds of the game"""
-
-        self.trump_suit = ""
-        valid_menu_options = ["C", "S", "H", "D"]
-        trump_choice = input(
-            F"""ENTER YOUR CHOICE OF TRUMP
-                [C] CLUB
-                [S] SPADE
-                [H] HEART
-                [D] DIAMOND 
-                """).strip()
         
-        if trump_choice.upper()[0] in valid_menu_options:
-            if trump_choice == "C":
-                self.trump_suit = 'club'
-            if trump_choice == "S":
-                self.trump_suit = 'spade'
-            if trump_choice == "H":
-                self.trump_suit = 'heart'
-            if trump_choice == "D":
-                self.trump_suit = 'diamond'
+
+
+    def decide_trump(self):
+        """Function for determining whether a human or robot is deciding trump value"""
+
+        #calculate who decides trump
+        _scores = self.scoreboard.scoreboard
+        _high_score = max(self.scoreboard.scoreboard.values())
+        winners = []
+        winner = ""
+        for item, value in _scores.items():
+           if value == _high_score:
+               winners.append(item)
+        if len(winners) > 1:
+            random.shuffle(winners)
+            winner = winners[-1] 
+        else:
+            winner = winners[0]
+
+        if winner in self.player_set:
+            for item in self.player_set:
+                if item == winner:
+                    winner_player = item
+        
+        if not winner.computer:
+            self.player_decide_trump(winner=winner_player)
+
+        #computer will stick with the same trump
+        self.UIManager.display_message(f"{winner_player.name} SELECTED {self.trump_suit}")
+               
+        
+    def player_decide_trump(self, winner:Player):
+            """
+            Human player decides next trump value
+            """
+            self.trump_suit = ""
+            valid_menu_options = ["C", "S", "H", "D"]
+            trump_choice = input(
+                F"""ENTER YOUR CHOICE OF TRUMP
+                    [C] CLUB
+                    [S] SPADE
+                    [H] HEART
+                    [D] DIAMOND 
+                    """).strip()
+            
+            if trump_choice.upper()[0] in valid_menu_options:
+                if trump_choice == "C":
+                    self.trump_suit = 'club'
+                if trump_choice == "S":
+                    self.trump_suit = 'spade'
+                if trump_choice == "H":
+                    self.trump_suit = 'heart'
+                if trump_choice == "D":
+                    self.trump_suit = 'diamond'
+
+            self.UIManager.display_message(f"{winner} SELECTED {self.trump_suit}")
 
     def display_ingame_menu(self, player:Player) -> str:
         """
@@ -465,4 +493,6 @@ if you win the hand you should go first
 12/07/25
 
 Adding phases to the game as well as containing more information about the game in the game object
+
+ROUND SCOREBOARD NOT UPDATING, 
 """
