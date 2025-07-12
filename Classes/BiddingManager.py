@@ -23,7 +23,11 @@ class BiddingManager():
 
     def reorder_current_bids(self, player_queue: list):
         """
-        Function for reordering the current bids dictionary
+        Function for reordering the current bids dictionary based on the turn order
+        Ideally meant to be used once before the round commenences
+
+        Args:
+            player_queue (list): The player queue is necessary to preserve the correct order
         """
 
         temp_dict = {}
@@ -42,21 +46,21 @@ class BiddingManager():
             if player.bid > -1:
                 self.current_bids[player.name] = player.bid
     
-    def player_bid(self, player: Player, not_allowed: int = -1, amount: int = 0) -> bool:
+    def successful_player_bid(self, player: Player, not_allowed: int = -1, bid_amount: int = 0) -> bool:
         """
         Completes the player bid and updates the player objects
 
         Returns True or False based on whether the bid is successful
         """
-        player.bid = amount
+        player.bid = bid_amount
         self.current_bids[player.name] = player.bid
 
         if player.handicapped_bid:
-            if amount == not_allowed:
+            if bid_amount == not_allowed:
                 return False
-        if 0 <= amount < 9:
-            player.bid = amount
-            self.current_bids[player.name] = amount
+        if 0 <= bid_amount < 9:
+            player.bid = bid_amount
+            self.current_bids[player.name] = bid_amount
             return True
         return False
 
@@ -70,7 +74,7 @@ class BiddingManager():
         Function for calculating the banned number the player is unable to bid this round
         """
 
-        banned = int()
+        banned = int()  
         for number in self.current_bids.values():
             if number != 'X' and number >= 0:
                 banned += int(number)
@@ -79,4 +83,4 @@ class BiddingManager():
         return banned
     
 
-# TODO: CURRENT BIDS IS NOT IN THE RIGHT ORDER
+    #testing time !!

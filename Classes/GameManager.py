@@ -19,20 +19,30 @@ class Game():
     and menu interactions
 
     Attributes:
-        game_state (str): Stores the current state of the game
         player_queue (list): A list which stores the order of which the players are playing
         menu_options (dict): A dictionary which stores the current options for the menu
+        round (int): An integer value of the current round the game is in
+        cards_per_round (list): A ;ist of the maximum cards per round
+        phase (str): A string which indicates the current action of the game object
     """
 
     def __init__(self,*args, **kwargs):
         """
         When initialised, the game object should receive the player parameters
         """
-        self.game_state = None
         self.menu_options = {
             "S": "SHOW HAND",
             "B": "BID" 
         }
+
+        self.round = 1
+        self.cards_per_round = [8,7,6,6,7,8]
+        self.phases = {
+            "bidding": self.handle_bidding_phase,
+            "playing": self.handle_playing_phase,
+            "scoring": self.handle_scoring_phase,
+        }
+        self.phase = "bidding"
 
         #creates a temp list with the player objects in
         temp_list = []
@@ -68,15 +78,11 @@ class Game():
         if len(self.player_set) < 3:
             raise Exception("Not enough players in the game")
 
-    
-
     def create_game(self):
         """
         Function for creating the initial game. 
 
-        """
-        self.game_state = "CREATE_GAME"
-        
+        """        
         #generate deck
         self.deck = Deck()
         
@@ -93,7 +99,47 @@ class Game():
         self.UIManager = UIManager()
         self.biddingManager = BiddingManager(self.player_set)
         self.playerStateManager = PlayerStateManager(self.player_set)
+        
+        #last person has a handicapped bid
+        self.player_queue[-1].handicapped_bid = True
 
+    def handle_bidding_phase(self):
+        """
+        Cards are dealt for players, and reset
+        """
+        
+        self.player_queue[-1].handicapped_bid = True
+        self.biddingManager.reset_bids()
+        self.deck.generate_deck()
+        self.deal_cards(amount_to_deal=self.cards_per_round[self.round - 1])
+
+        #dealer shifts eveery time bidding starts
+        self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
+        self.player_queue = self.original_queue
+
+        #starts the bidding process
+        self.start_bidding(max_cards=self.cards_per_round[self.round-1], round_no=self.round)
+        self.phase = "playing"
+
+    def handle_playing_phase(self):
+        """
+        """
+        cards = self.cards_per_round[self.round-1]
+        for _ in range(cards):
+            self.start_round()
+        self.phase = "scoring"
+    
+    def handle_scoring_phase(self):
+        """
+        Scoring logic
+        """
+        self.score_round()
+        if self.round < 6:
+            self.round += 1
+            self.phase = "bidding"
+        else:
+            self.phase = "game_over"
+        
 
     def player_bid(self, player:Player=None, max_cards: int = 6):
         """
@@ -124,7 +170,7 @@ class Game():
                 if user_input < 9:
                     
                     #valid bid
-                    if self.biddingManager.player_bid(player, amount = user_input):
+                    if self.biddingManager.successful_player_bid(player, bid_amount = user_input):
                         if user_input == 1:
                             self.UIManager.display_message(f"{player.name} bid {user_input} Card")
                         else:
@@ -138,8 +184,6 @@ class Game():
             """
             Function for creating the player bid menu, ensuring that the computer players do not need the menu
             """
-
-
             self.menu_options = {
                         'B': 'BID'
                         }
@@ -239,7 +283,6 @@ HAND: {player.display_hand_str()}
         """
         Function for dealing cards to the players
         """
-
         #generates new deck
         self.deck.generate_deck()
 
@@ -252,17 +295,7 @@ HAND: {player.display_hand_str()}
         Function for the functionality of the bidding round
         """
         clear_screen()
-        self.game_state = "BIDDING START"
-
-        #dealer shifts eveery time bidding starts
-        self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
-        self.player_queue = self.original_queue#
-
-        #last person has a handicapped bid
-        self.player_queue[-1].handicapped_bid = True
-
-        #reset bidding values
-        self.biddingManager.reset_bids()
+        self.phase = "bidding"
         
         #Bidding output begins
         print(f"""\nBIDDING BEGINS\n""")
@@ -297,21 +330,13 @@ HAND: {player.display_hand_str()}
         else:
             print(f"-{max_cards-total_bids} ROUND")
 
-
-    def end_bidding(self):
-        """
-        Function for ending the bidding round
-        """
-        self.game_state = "BIDDING END"
-
-    def start_round(self, max_cards):
+    def start_round(self):
         """
         Function for the functionality of the playing round
 
         "Remember to shuffle the order of the player list so that the person in first position is now last"
         """
         user_choice = ""
-        self.game_state = "PLAYING START"
         self.table.reset()
 
         for player in self.player_queue:
@@ -353,15 +378,20 @@ HAND: {player.display_hand_str()}
                     else:
                         self.UIManager.display_message("INVALID OPTION")
 
+
+    def score_round(self):
+        """
+        Function for scoring the round and updating player scores
+        """
+
         winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
-        
-        self.UIManager.display_message(message=f"DONE, {winner_card.owner} is the winner with {winner_card}")
+        winning_player= winner_card.owner
+        self.UIManager.display_message(message=f"DONE, {winning_player} is the winner with {winner_card}")
         self.scoreboard.update_round_scoreboard(self.player_set, winner_card=winner_card)
-        self.player_queue = self.playerStateManager.update_winner_order(self.player_queue)
+        self.player_queue = self.playerStateManager.update_winner_order(winner=winning_player, player_queue=self.player_queue)
+        self.decide_trump(player=winning_player)
 
-        
 
-        
     def decide_trump(self, player:Player):
         """Function for determining the trump for the next round
         Useful for the subsequent rounds of the game"""
@@ -385,8 +415,6 @@ HAND: {player.display_hand_str()}
                 self.trump_suit = 'heart'
             if trump_choice == "D":
                 self.trump_suit = 'diamond'
-
-
 
     def display_ingame_menu(self, player:Player) -> str:
         """
@@ -433,4 +461,8 @@ now just to set up testing tables
 
 need to allow the winner of the previous round to pick the next trump, also the dealer each round needs to change
 if you win the hand you should go first
+
+12/07/25
+
+Adding phases to the game as well as containing more information about the game in the game object
 """

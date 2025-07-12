@@ -37,5 +37,21 @@ def my_game():
     player5 = Player()
     my_list = [player, player2, player3, player4, player5]
     game = Game(my_list)
+    game.create_game()
     return game
 
+class TestBiddingManager():
+
+    def test_successful_player_bid(self,my_game):
+
+        #Not allowed works
+        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[0], not_allowed=2, bid_amount=2) == True # not handicapped
+        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[-1], not_allowed=2, bid_amount=2) == False # handicapped
+        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[0], not_allowed=3, bid_amount=2) == True
+        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[0], not_allowed=3, bid_amount=10) == False
+
+    def test_reset_bids(self, my_game):
+
+        assert """""" ###
+
+    
