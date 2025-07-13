@@ -106,6 +106,7 @@ class Game():
         Cards are dealt for players, and reset
         """
 
+        self.playerStateManager.reset_players()
         #dealer shifts eveery time bidding starts
         if self.round > 1:
             self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
@@ -510,5 +511,9 @@ ROUND SCOREBOARD UPDATING NOW,
 ROUND SCORING NOT RESETTING AFTER EACH ROUND 
 UNABLE TO BID FREELY ON SECOND ROUND 
 WINNER DOES NOT GO FIRST AFTER ROUNDS !!
+
+13/07/25
+
+DEALER SWITCHES AFTER EACH ROUND
 
 """

@@ -32,12 +32,9 @@ class PlayerStateManager():
 
         Returns player queue
         """
-
         moving_player = player_queue[0]
         player_queue.append(moving_player)
-        #should be a duplicate so first occurance is deleted
         player_queue.remove(moving_player)
-
         return player_queue
 
     def update_winner_order(self, winner:Player, player_queue:list):
@@ -55,8 +52,14 @@ class PlayerStateManager():
             selected_player = player_queue[0]
             player_queue.append(selected_player)
             player_queue.remove(selected_player)
-        
+
         return player_queue
 
 
+    def reset_players(self):
+        """
+        Calls the reset function for all the players in the game
+        """
 
+        for player in self.players:
+            player.reset()

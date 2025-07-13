@@ -42,6 +42,7 @@ def my_game():
     game = Game(my_list)
     game.create_game()
     game.player_queue = [player, player2, player3, player4, player5]
+    game.original_queue = [player, player2, player3, player4, player5]
     return game
 
 class Test_PlayerState():
@@ -72,6 +73,26 @@ class Test_PlayerState():
         player2 = my_game.player_queue[1]
         player1 = my_game.player_queue[0]
         my_game.playerStateManager.update_winner_order(winner=player2, player_queue=my_game.player_queue)
+        assert my_game.player_queue[0] == player2
+        assert my_game.player_queue[1] == player3
+        assert my_game.player_queue[2] == player4
+        assert my_game.player_queue[3] == player5
+        assert my_game.player_queue[4] == player1
+
+    def test_update_dealer_order(self, my_game):
+        """
+        Determines whether the dealer shifts one position every round
+        """
+
+        player5 = my_game.player_queue[-1]
+        player4 = my_game.player_queue[3]
+        player3 = my_game.player_queue[2]
+        player2 = my_game.player_queue[1]
+        player1 = my_game.player_queue[0]
+
+        my_game.original_queue = my_game.playerStateManager.update_dealer_order(my_game.original_queue)
+        my_game.player_queue = my_game.original_queue
+
         assert my_game.player_queue[0] == player2
         assert my_game.player_queue[1] == player3
         assert my_game.player_queue[2] == player4
