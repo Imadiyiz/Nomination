@@ -126,6 +126,7 @@ class Game():
         cards = self.cards_per_round[self.round-1]
         for _ in range(cards):
             self.start_round()
+            self.score_round()
         self.phase = "scoring"
         if self.round > 1:
             self.decide_trump()
@@ -134,7 +135,7 @@ class Game():
         """
         Scoring logic
         """
-        self.score_round()
+        #self.score_round()
         if self.round < 6:
             self.round += 1
             self.phase = "bidding"
@@ -168,6 +169,7 @@ class Game():
                 user_input = int(user_input[0])
                 if user_input == not_allowed:
                     self.UIManager.display_message(f"Unable to bid that amount, {not_allowed}, user input {user_input}, {self.biddingManager.calculate_banned_number}")
+                    print(player.handicapped_bid, player.name, "handicapped somehow")
                     return False
                 if user_input < 9:
                     
@@ -335,6 +337,7 @@ HAND: {player.display_hand_str()}
         """
         user_choice = ""
         self.table.reset()
+        self.scoreboard.reorder_round_scoreboard(player_queue=self.player_queue)
 
         for player in self.player_queue:
             first_card = None
@@ -393,54 +396,63 @@ HAND: {player.display_hand_str()}
         """Function for determining whether a human or robot is deciding trump value"""
 
         #calculate who decides trump
-        _scores = self.scoreboard.scoreboard
-        _high_score = max(self.scoreboard.scoreboard.values())
-        winners = []
-        winner = ""
-        for item, value in _scores.items():
-           if value == _high_score:
-               winners.append(item)
-        if len(winners) > 1:
-            random.shuffle(winners)
-            winner = winners[-1] 
-        else:
-            winner = winners[0]
+        _scores = self.scoreboard.round_scoreboard
+        _max_score = max(self.scoreboard.round_scoreboard.values())
+        _top_players = []
 
-        if winner in self.player_set:
-            for item in self.player_set:
-                if item == winner:
-                    winner_player = item
+        for item, value in _scores.items():
+           if value == _max_score:
+               _top_players.append(item)
+
+        winner_name = random.choice(_top_players)
+
+        #determine winner player object
+        for player in self.player_set:
+            if player == winner_name:
+                winner = player
+
+        if not winner:
+            raise Exception(f"{winner_name} not found in the player set")
         
         if not winner.computer:
-            self.player_decide_trump(winner=winner_player)
+            self.player_picks_trump(winner=winner)
 
         #computer will stick with the same trump
-        self.UIManager.display_message(f"{winner_player.name} SELECTED {self.trump_suit}")
+        self.UIManager.display_message(f"{winner_name} SELECTED {self.trump_suit}")
                
         
-    def player_decide_trump(self, winner:Player):
+    def player_picks_trump(self, winner:Player):
             """
-            Human player decides next trump value
+            Human player picks next trump value
             """
             self.trump_suit = ""
             valid_menu_options = ["C", "S", "H", "D"]
-            trump_choice = input(
-                F"""ENTER YOUR CHOICE OF TRUMP
-                    [C] CLUB
-                    [S] SPADE
-                    [H] HEART
-                    [D] DIAMOND 
-                    """).strip()
-            
-            if trump_choice.upper()[0] in valid_menu_options:
-                if trump_choice == "C":
-                    self.trump_suit = 'club'
-                if trump_choice == "S":
-                    self.trump_suit = 'spade'
-                if trump_choice == "H":
-                    self.trump_suit = 'heart'
-                if trump_choice == "D":
-                    self.trump_suit = 'diamond'
+            valid = False
+
+            #loop until valid trump chosen
+            while not valid:
+                clear_screen()
+                trump_choice = input(
+                    F"""ENTER YOUR CHOICE OF TRUMP
+                        [C] CLUB
+                        [S] SPADE
+                        [H] HEART
+                        [D] DIAMOND 
+                        """).strip()
+                
+                if trump_choice.upper()[0] in valid_menu_options:
+                    if trump_choice == "C":
+                        self.trump_suit = 'club'
+                    if trump_choice == "S":
+                        self.trump_suit = 'spade'
+                    if trump_choice == "H":
+                        self.trump_suit = 'heart'
+                    if trump_choice == "D":
+                        self.trump_suit = 'diamond'
+                    valid = True
+                else:
+                    self.UIManager.display_message(f"Invalid response. Try again")
+                    valid = False
 
             self.UIManager.display_message(f"{winner} SELECTED {self.trump_suit}")
 
@@ -494,5 +506,9 @@ if you win the hand you should go first
 
 Adding phases to the game as well as containing more information about the game in the game object
 
-ROUND SCOREBOARD NOT UPDATING, 
+ROUND SCOREBOARD UPDATING NOW,
+ROUND SCORING NOT RESETTING AFTER EACH ROUND 
+UNABLE TO BID FREELY ON SECOND ROUND 
+WINNER DOES NOT GO FIRST AFTER ROUNDS !!
+
 """

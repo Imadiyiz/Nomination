@@ -51,8 +51,8 @@ class PlayerStateManager():
         while not found:
             if player_queue[0] == winner:
                 found = True
-                return
-            selected_player= player_queue[0]
+                return player_queue
+            selected_player = player_queue[0]
             player_queue.append(selected_player)
             player_queue.remove(selected_player)
         

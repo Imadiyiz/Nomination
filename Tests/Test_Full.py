@@ -60,3 +60,4 @@ class TestClass:
                     _phase_handler() # function from the dictionary is performed
                 else:
                     raise ValueError(f"Unknown game phase: {my_game.phase}")
+            print(my_game.scoreboard.total_scoreboard)
