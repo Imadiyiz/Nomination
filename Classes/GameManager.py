@@ -60,7 +60,6 @@ class Game():
         names_dict = {}
         count = 2
         for player in self.player_queue:
-            player.reset()
             if player.name not in names_dict:
                 names_dict[player.name] = 1
                 self.player_set.add(player)
@@ -106,7 +105,7 @@ class Game():
         Cards are dealt for players, and reset
         """
 
-        self.playerStateManager.reset_players()
+        self.playerStateManager.reset_players_handicap()
         #dealer shifts eveery time bidding starts
         if self.round > 1:
             self.original_queue = self.playerStateManager.update_dealer_order(self.original_queue)
@@ -156,34 +155,38 @@ class Game():
 
         #reorders the dictionary 
         self.biddingManager.reorder_current_bids(self.player_queue)
+        _max_cards = self.cards_per_round[self.round-1]
         
-        _max_cards = self.cards_per_round[self.round - 1]
         not_allowed = self.biddingManager.calculate_banned_number(_max_cards)
         #check for handicap
-        if player.handicapped_bid and not_allowed > -1:
-            user_input = self.UIManager.get_player_input(f"ENTER BID (BANNED: {not_allowed})\n")
-        else:
-            user_input = self.UIManager.get_player_input("ENTER BID\n")
+
+        enter_bid_prompt = (
+        f"ENTER BID (BANNED: {not_allowed})\n" if player.handicapped_bid
+        else "ENTER BID\n"
+        )
+        user_input = self.UIManager.get_player_input(enter_bid_prompt)
+
+        #handicapped check
+        for player in self.player_queue:
+            if player.handicapped_bid:
+                print(player.name, player.handicapped_bid)
 
         #working with input  
         if user_input[0].strip():
-                user_input = int(user_input[0])
-                if user_input == not_allowed:
-                    self.UIManager.display_message(f"Unable to bid that amount, {not_allowed}, user input {user_input}, {self.biddingManager.calculate_banned_number}")
-                    print(player.handicapped_bid, player.name, "handicapped somehow")
-                    return False
-                if user_input < 9:
-                    
-                    #valid bid
-                    if self.biddingManager.successful_player_bid(player, bid_amount = user_input):
-                        if user_input == 1:
-                            self.UIManager.display_message(f"{player.name} bid {user_input} Card")
-                        else:
-                            self.UIManager.display_message(f"{player.name} bid {user_input} Cards")
-
-                    else:
-                        self.UIManager.display_message("Unable to bid that amount")
+            try:
+                bid_value = int(user_input[0])
+                is_valid = self.biddingManager.successful_player_bid(
+                    player, not_allowed=not_allowed, bid_amount=bid_value
+                )
+                if is_valid:
+                    msg = f"{player.name} bid {bid_value} Card" + ("s" if bid_value != 1 else "")
+                    self.UIManager.display_message(msg)
                     return True
+                else:
+                    self.UIManager.display_message("Unable to bid that amount.")
+            except ValueError:
+                self.UIManager.display_message("Invalid input. Enter a number.")
+        return False
                 
     def create_player_bid_menu(self, player:Player = None, round_no:int = 1):
             """
@@ -320,6 +323,8 @@ HAND: {player.display_hand_str()}
         #output current bids
         print(f"CURRENT BIDS: {self.biddingManager.current_bids}\n") #may need updating beforehand
         print("ERROR HERE")
+        for player in self.player_queue:
+            print(player.bid, player.name, player.handicapped_bid)
 
         #calculate + or - round
         total_bids = 0
@@ -515,5 +520,6 @@ WINNER DOES NOT GO FIRST AFTER ROUNDS !!
 13/07/25
 
 DEALER SWITCHES AFTER EACH ROUND
+I AM CURRENTLY BIDDING FOR THE FOR THE AI AT THE MOMENT LEAVING THE PLAYER WITHOUT THEIR OWN BID
 
 """

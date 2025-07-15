@@ -1,8 +1,7 @@
 # Contents for the Bidding Manager python file
 
 from .PlayerClass import Player
-from Utils.tools import clear_screen
-from .GameManager import UIManager
+from typing import List
 
 
 class BiddingManager():
@@ -10,33 +9,26 @@ class BiddingManager():
     Manages the flow of the bidding logic for players
     """
 
-    def __init__(self,players, max_cards: int = 8):
+    def __init__(self,players):
         self.current_bids = {}
         self.players = players
         self.current = 0
-        self.passed = set() #completed players
         self.not_allowed = -1
-        self.max_cards = max_cards
-
-        #bids start with 'X'
         self.current_bids = {p.name: 'X' for p in players}
 
-    def reorder_current_bids(self, player_queue: list):
+    def reorder_current_bids(self, player_queue: List[Player]):
         """
         Function for reordering the current bids dictionary based on the turn order
         Ideally meant to be used once before the round commenences
 
         Args:
-            player_queue (list): The player queue is necessary to preserve the correct order
+            player_queue (list[Player]): The player queue is necessary to preserve the correct order
         """
 
-        temp_dict = {}
-        for player in player_queue:
-            if player.bid > -1:
-                temp_dict[player.name] = player.bid
-            else:
-                temp_dict[player.name] = 'X'
-        self.current_bids = temp_dict
+        self.current_bids = {
+            player.name: player.bid if player.bid > -1 else 'X'
+            for player in player_queue
+        }
 
     def update_current_bids(self):
         """
@@ -50,18 +42,19 @@ class BiddingManager():
         """
         Completes the player bid and updates the player objects
 
-        Returns True or False based on whether the bid is successful
+        Returns:
+          bool: True if the bid is successful, False otherwise
         """
-        player.bid = bid_amount
-        self.current_bids[player.name] = player.bid
 
-        if player.handicapped_bid:
-            if bid_amount == not_allowed:
-                return False
+        if player.handicapped_bid and bid_amount == not_allowed:
+            return False
+        
         if 0 <= bid_amount < 9:
             player.bid = bid_amount
             self.current_bids[player.name] = bid_amount
+            print("SUCC")
             return True
+        
         return False
 
     def reset_bids(self):
@@ -74,13 +67,9 @@ class BiddingManager():
         Function for calculating the banned number the player is unable to bid this round
         """
 
-        banned = int()  
-        for number in self.current_bids.values():
-            if number != 'X' and number >= 0:
-                banned += int(number)
-        banned = max_cards - banned  
+        total_bids = sum(int(bid) for bid in self.current_bids.values() if bid != 'X')
 
-        return banned
+        return max_cards - total_bids
     
 
     #testing time !!

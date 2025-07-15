@@ -58,6 +58,9 @@ class Player:
     def reset_bid(self):
         self.bid = -1
 
+    def reset_handicap(self):
+        self.handicapped_bid = False
+
     def __str__(self):
         return self.name
     

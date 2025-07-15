@@ -56,10 +56,10 @@ class PlayerStateManager():
         return player_queue
 
 
-    def reset_players(self):
+    def reset_players_handicap(self):
         """
-        Calls the reset function for all the players in the game
+        Calls the reset_handicap function for all the players in the game
         """
 
         for player in self.players:
-            player.reset()
+            player.reset_handicap()

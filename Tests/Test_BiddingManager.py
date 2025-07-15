@@ -7,51 +7,59 @@ import pytest
 from Classes.GameManager import Game
 from Classes.UIManager import UIManager
 from Classes.BiddingManager import BiddingManager
+import random
 
-@pytest.fixture 
-def my_deck():
-    deck = Deck()
-    return deck
+@pytest.fixture
+def players():
+    players = []
+    for i in range(5):
+        players.append(Player(name=f"Player{i}"))
+    return players
 
-@pytest.fixture 
-def my_table():
-    table = Table(max_players=4)
-    return table
-
-@pytest.fixture 
-def my_player():
-    player = Player()
-    return player
-
-@pytest.fixture 
-def my_card():
-    card = Card(suit=("Diamond", "♦"), value=("10", 10))
-    return card
-
-@pytest.fixture 
-def my_game():
-    player = Player(name="Jay", computer=False)
-    player2 = Player(name="Haider", computer=False)
-    player3 = Player()
-    player4 = Player()
-    player5 = Player()
-    my_list = [player, player2, player3, player4, player5]
-    game = Game(my_list)
-    game.create_game()
-    return game
+@pytest.fixture
+def bm(players):
+    """
+    Bidding Manager reusable object
+    """
+    _bm = BiddingManager(players)
+    return _bm
+    
 
 class TestBiddingManager():
 
-    def test_successful_player_bid(self,my_game):
+    def test_successful_player_bid(self, bm, players):
 
         #Not allowed works
-        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[0], not_allowed=2, bid_amount=2) == True # not handicapped
-        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[-1], not_allowed=2, bid_amount=2) == False # handicapped
-        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[0], not_allowed=3, bid_amount=2) == True
-        assert my_game.biddingManager.successful_player_bid(my_game.player_queue[0], not_allowed=3, bid_amount=10) == False
+        handicapped_player = players[-1]
+        handicapped_player.handicapped_bid = True
+        assert bm.successful_player_bid(players[0], not_allowed=2, bid_amount=2) # not handicapped
+        assert not bm.successful_player_bid(handicapped_player, not_allowed=2, bid_amount=2)  # handicapped
+        assert handicapped_player.bid != 2
+        assert bm.successful_player_bid(players[0], not_allowed=3, bid_amount=2) 
+        assert not bm.successful_player_bid(handicapped_player, not_allowed=3, bid_amount=10) 
+        assert handicapped_player.bid != 10
+        assert handicapped_player.bid == -1
+        assert bm.successful_player_bid(handicapped_player, not_allowed=3, bid_amount=2) 
+        assert handicapped_player.bid == 2
 
-    def test_reset_bids(self, my_game):
+    def test_reset_bids(self, bm):
+        
+        for player in bm.players:
+            player.bid = random.randint(1,5)
 
-        assert """""" ###
+        for player in bm.players:
+            assert player.bid > 0
 
+        bm.reset_bids()
+
+        for player in bm.players:
+            assert player.bid == -1
+
+
+    def test_calculate_banned_numbers(self, bm, players):
+        players[0].bid = 2
+        players[1].bid = 3
+        bm.update_current_bids()
+        banned = bm.calculate_banned_number(max_cards=8)
+        assert banned == 3  # 8 - (2+3)
     
