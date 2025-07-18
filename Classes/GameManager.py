@@ -7,7 +7,7 @@ from .CardClass import Card
 import random
 from .ScoreboardClass import Scoreboard
 from .UIManager import UIManager
-from Utils.tools import clear_screen
+from Utils.Tools import clear_screen
 from .BiddingManager import BiddingManager
 from .PlayerStateManager import PlayerStateManager
 from .TrumpManager import TrumpManager
@@ -94,7 +94,7 @@ class Game():
         self.scoreboard = Scoreboard(self.player_set)
         self.table = Table(max_players=len(self.player_set))
         self.UIManager = UIManager()
-        self.biddingManager = BiddingManager(self.player_set)
+        self.biddingManager = BiddingManager(self.UIManager)
         self.playerStateManager = PlayerStateManager(self.player_set)
         self.trumpManager = TrumpManager(self.UIManager)
         
@@ -104,6 +104,7 @@ class Game():
         Cards are dealt for players, and reset
         """
 
+        max_cards = self.cards_per_round[self.round-1]
         self.playerStateManager.reset_players_handicap()
         #dealer shifts eveery time bidding starts
         if self.round > 1:
@@ -111,12 +112,13 @@ class Game():
             self.player_queue = self.original_queue
         
         self.player_queue[-1].handicapped_bid = True
-        self.biddingManager.reset_bids()
+        self.biddingManager.reset_bids(self.player_queue)
+        self.biddingManager.update_current_bids(self.player_queue)
         self.deck.generate_deck()
         self.deal_cards(amount_to_deal=self.cards_per_round[self.round - 1])
 
         #starts the bidding process
-        self.start_bidding(round_no=self.round)
+        self.biddingManager.start_bidding(trump_suit=self.trump_suit, round_no=self.round, player_queue=self.player_queue, max_cards=max_cards)
         self.phase = "playing"
 
     def handle_playing_phase(self):
@@ -140,144 +142,6 @@ class Game():
             self.phase = "bidding"
         else:
             self.phase = "game_over"
-        
-
-    def player_bid(self, player:Player=None):
-        """
-        High level block of player making bid, handles validation of input
-
-        Returns TRUE or FALSE based on whether the bid was valid
-
-        Args:
-            player (Player): The player instance which is performing the bidding
-        """
-
-        #reorders the dictionary 
-        self.biddingManager.reorder_current_bids(self.player_queue)
-        _max_cards = self.cards_per_round[self.round-1]
-        
-        not_allowed = self.biddingManager.calculate_banned_number(_max_cards)
-        #check for handicap
-
-        enter_bid_prompt = (
-        f"ENTER BID (BANNED: {not_allowed})\n" if player.handicapped_bid
-        else "ENTER BID\n"
-        )
-        user_input = self.UIManager.get_player_input(enter_bid_prompt)
-
-        #handicapped check
-        for player in self.player_queue:
-            if player.handicapped_bid:
-                print(player.name, player.handicapped_bid)
-
-        #working with input  
-        if user_input[0].strip():
-            try:
-                bid_value = int(user_input[0])
-                is_valid = self.biddingManager.successful_player_bid(
-                    player, not_allowed=not_allowed, bid_amount=bid_value
-                )
-                if is_valid:
-                    msg = f"{player.name} bid {bid_value} Card" + ("s" if bid_value != 1 else "")
-                    self.UIManager.display_message(msg)
-                    return True
-                else:
-                    self.UIManager.display_message("Unable to bid that amount.")
-            except ValueError:
-                self.UIManager.display_message("Invalid input. Enter a number.")
-        return False
-                
-    def create_player_bid_menu(self, player:Player = None, round_no:int = 1):
-            """
-            Function for creating the player bid menu, ensuring that the computer players do not need the menu
-            """
-            _max_cards = self.cards_per_round[self.round - 1]
-            self.biddingManager.reorder_current_bids(self.player_queue)
-            _current_bids = self.biddingManager.current_bids
-            self.menu_options = {
-                        'B': 'BID'
-                        }
-            menu_options_string = self.create_menu_options_string()
-
-            bidding_menu = (
-f"""{player}'s TURN BIDDING
-
-CURRENT BIDS: {_current_bids }
-TRUMP: {self.trump_suit.upper()}
-HAND: {player.display_hand_str()}
-
-{menu_options_string}
-""")                
-            bid_complete = False
-            while not bid_complete and player.computer == False:
-
-                #cleans screen before printing the bidding menu
-                clear_screen()
-                print(f"""ROUND {round_no}: {_max_cards} CARDS PER HAND\n""")
-                user_input = self.UIManager.get_player_input((bidding_menu))
-
-                if user_input[0].upper() in self.menu_options:
-                        if user_input[0].upper() == "S":
-                            #Show Hand
-                            clear_screen()
-                            self.menu_options = {
-                        'B': 'BID'
-                        }
-                            #updates the bidding options
-                            menu_options_string = self.create_menu_options_string()
-                            
-                        elif user_input[0].upper() == 'B':
-                        #player gets to enter bid
-                            run = True
-                            while run:
-                                clear_screen()
-                                #check for handicap
-                                if player.handicapped_bid:
-                                    # apply param if handicapped  
-                                    if self.player_bid(player=player):
-                                        run = False
-                                        bid_complete = True
-                                else:
-                                    if self.player_bid(player=player):
-                                        run = False
-                                        bid_complete = True
-                                    else:
-                                        self.UIManager.display_message("TRY AGAIN")
-
-    def computer_bid(self, player:Player = None, not_allowed:int = -1):
-        """
-        High level block of computer user making a bid
-
-        Returns True when a bid is complete
-        Raises error if anything goes wrong
-        """
-        #generate random bid
-        bid_invalid = True
-        while bid_invalid:
-            bid  = random.randint(0,4)
-            if bid != not_allowed:
-                bid_invalid = False
-
-
-        player.bid = bid
-        if bid == 1:
-            self.UIManager.display_message(f"{player.name} Bid 1 Card")
-        else:
-            self.UIManager.display_message(f"{player.name} Bid {player.bid} Cards")
-
-        self.biddingManager.update_current_bids()
-        return True
-                
-        
-    def create_menu_options_string(self):
-        """
-        Function for creating the menu options string to ensure it is up to date
-        """
-        menu_options_string = ""
-        for char, option in self.menu_options.items():
-                    menu_options_string += f"[{char}] {option}\n"
-
-        return menu_options_string
 
     def deal_cards(self, amount_to_deal: int = 0):
         """
@@ -290,49 +154,7 @@ HAND: {player.display_hand_str()}
         for player in self.player_set:
             player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
 
-    def start_bidding(self, round_no:int = 1):
-        """
-        Function for the functionality of the bidding round
-        """
-        clear_screen()
-        self.phase = "bidding"
-        _max_cards = self.cards_per_round[self.round - 1]
-        
-        #Bidding output begins
-        print(f"""\nBIDDING BEGINS\n""")
-
-        #Loop for every player in the list since order matters
-        for player in self.player_queue:
-
-            #if human, use the player bid menu
-            if player.computer == False:
-                self.create_player_bid_menu(player, round_no = round_no)
-            else:
-                 #check for handicap
-                if player.handicapped_bid:
-                    banned = self.biddingManager.calculate_banned_number(max_cards=_max_cards)     
-                    # apply param if handicapped  
-                    self.computer_bid(player=player, not_allowed=banned)
-                else:
-                    self.computer_bid(player)
-
-        #end bidding information
-        clear_screen()
-
-        #output current bids
-        print(f"CURRENT BIDS: {self.biddingManager.current_bids}\n") #may need updating beforehand
-        print("ERROR HERE")
-        for player in self.player_queue:
-            print(player.bid, player.name, player.handicapped_bid)
-
-        #calculate + or - round
-        total_bids = 0
-        for bid in self.biddingManager.current_bids.values():
-            total_bids += bid
-        if total_bids > _max_cards:
-            print(f"+{total_bids-_max_cards} ROUND")
-        else:
-            print(f"-{_max_cards-total_bids} ROUND")
+    
 
     def start_round(self):
         """
@@ -429,5 +251,7 @@ I AM CURRENTLY BIDDING FOR THE FOR THE AI AT THE MOMENT LEAVING THE PLAYER WITHO
 18/07/2025
 i AM STRUGGLING SINCE THE BIDDING VALUES OF THE HUMANS ARE NOT SAVING OR ARE BEING RESET i WILL FIND OUT,
 THE TODAY i WILL WRITE LOTS OF UNIT TESTS TO GET BETTER AT THEM
+
+I'm going to rework the whole bidding manager setup, so that the bidding manager can handle everything to do with the bidding
 
 """
