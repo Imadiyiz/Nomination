@@ -10,13 +10,11 @@ from .UIManager import UIManager
 from Utils.tools import clear_screen
 from .BiddingManager import BiddingManager
 from .PlayerStateManager import PlayerStateManager
+from .TrumpManager import TrumpManager
 
 class Game():
     """
-    Class for managing the game state and event flows in the game.
-
-    Used for a high level understanding of how the game should run, including managing player bidding,
-    and menu interactions
+    Class for managing the game state and orchestrating the gamee
 
     Attributes:
         player_queue (list): A list which stores the order of which the players are playing
@@ -92,12 +90,13 @@ class Game():
         print("CARD RANDOMLY CHOSEN:: ", self.deck.deck[0])
         print("TRUMP SUIT:: ", self.trump_suit, "\n")
 
-        #Generate scoreboard object, table object 
+        #Generates objects for the game
         self.scoreboard = Scoreboard(self.player_set)
         self.table = Table(max_players=len(self.player_set))
         self.UIManager = UIManager()
         self.biddingManager = BiddingManager(self.player_set)
         self.playerStateManager = PlayerStateManager(self.player_set)
+        self.trumpManager = TrumpManager(self.UIManager)
         
 
     def handle_bidding_phase(self):
@@ -129,7 +128,7 @@ class Game():
             self.score_round()
         self.phase = "scoring"
         if self.round > 1:
-            self.decide_trump()
+            self.trump_suit = self.trumpManager.decide_trump()
     
     def handle_scoring_phase(self):
         """
@@ -395,72 +394,6 @@ HAND: {player.display_hand_str()}
         self.UIManager.display_message(message=f"DONE, {winning_player} is the winner with {winner_card}")
         self.scoreboard.update_round_scoreboard(self.player_set, winner_card=winner_card)
         self.player_queue = self.playerStateManager.update_winner_order(winner=winning_player, player_queue=self.player_queue)
-        
-
-
-    def decide_trump(self):
-        """Function for determining whether a human or robot is deciding trump value"""
-
-        #calculate who decides trump
-        _scores = self.scoreboard.round_scoreboard
-        _max_score = max(self.scoreboard.round_scoreboard.values())
-        _top_players = []
-
-        for item, value in _scores.items():
-           if value == _max_score:
-               _top_players.append(item)
-
-        winner_name = random.choice(_top_players)
-
-        #determine winner player object
-        for player in self.player_set:
-            if player == winner_name:
-                winner = player
-
-        if not winner:
-            raise Exception(f"{winner_name} not found in the player set")
-        
-        if not winner.computer:
-            self.player_picks_trump(winner=winner)
-
-        #computer will stick with the same trump
-        self.UIManager.display_message(f"{winner_name} SELECTED {self.trump_suit}")
-               
-        
-    def player_picks_trump(self, winner:Player):
-            """
-            Human player picks next trump value
-            """
-            self.trump_suit = ""
-            valid_menu_options = ["C", "S", "H", "D"]
-            valid = False
-
-            #loop until valid trump chosen
-            while not valid:
-                clear_screen()
-                trump_choice = input(
-                    F"""ENTER YOUR CHOICE OF TRUMP
-                        [C] CLUB
-                        [S] SPADE
-                        [H] HEART
-                        [D] DIAMOND 
-                        """).strip()
-                
-                if trump_choice.upper()[0] in valid_menu_options:
-                    if trump_choice == "C":
-                        self.trump_suit = 'club'
-                    if trump_choice == "S":
-                        self.trump_suit = 'spade'
-                    if trump_choice == "H":
-                        self.trump_suit = 'heart'
-                    if trump_choice == "D":
-                        self.trump_suit = 'diamond'
-                    valid = True
-                else:
-                    self.UIManager.display_message(f"Invalid response. Try again")
-                    valid = False
-
-            self.UIManager.display_message(f"{winner} SELECTED {self.trump_suit}")
 
     def display_ingame_menu(self, player:Player) -> str:
         """
@@ -483,43 +416,18 @@ ENTER THE INDEX VALUE OF THE CARD YOU WANT TO PLAY
 INPUT RANGE: {0}-{len(player.hand)-1}\n"""
         return _string
     
-""" TODO: Need to fix the logic with the show hand. I should just show the hand and then play the 
-game instead of hiding it and unhiding it. DONE 16/05/25
+""" TODO: 
 
-Returned to this code 25/06/2025 after a small hiatus (I was working and got complacent with progress)
-
-The classes in general are not specific enough (they have multiple uses) and this makes them difficult to test and understand.
-I have made some impressive progress in the gaming journey however, I am ready to move onto the new game and make it good.
-
-Good progress today. 02/07/25
-
-Need to fix error where if someone doesnt have trump or starting card they are free to play what they want
-06/07/25
-
-Late programming session where I have updated the test, the round scoring logic and the hand playing logic
-
-Now I just need to fix the bidding UI and the glitch where the second to last player is unable to bid what they want
-
-I dont know why we keep bidding in the middle of rounds
-
-Finished the CLI work and now the game works
-now just to set up testing tables
-
-need to allow the winner of the previous round to pick the next trump, also the dealer each round needs to change
-if you win the hand you should go first
 
 12/07/25
-
-Adding phases to the game as well as containing more information about the game in the game object
-
-ROUND SCOREBOARD UPDATING NOW,
-ROUND SCORING NOT RESETTING AFTER EACH ROUND 
 UNABLE TO BID FREELY ON SECOND ROUND 
-WINNER DOES NOT GO FIRST AFTER ROUNDS !!
 
 13/07/25
-
 DEALER SWITCHES AFTER EACH ROUND
 I AM CURRENTLY BIDDING FOR THE FOR THE AI AT THE MOMENT LEAVING THE PLAYER WITHOUT THEIR OWN BID
+
+18/07/2025
+i AM STRUGGLING SINCE THE BIDDING VALUES OF THE HUMANS ARE NOT SAVING OR ARE BEING RESET i WILL FIND OUT,
+THE TODAY i WILL WRITE LOTS OF UNIT TESTS TO GET BETTER AT THEM
 
 """

@@ -52,7 +52,7 @@ class BiddingManager():
         if 0 <= bid_amount < 9:
             player.bid = bid_amount
             self.current_bids[player.name] = bid_amount
-            print("SUCC")
+            print("SUCCESSFUL ADD BID", self.current_bids,player.bid)
             return True
         
         return False
