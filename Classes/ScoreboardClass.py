@@ -13,28 +13,34 @@ class Scoreboard():
 
     def __init__(self, *args:list):
         self.round_scoreboard = {}
-        self.total_scoreboard = []
+        self.total_scoreboard = {}
         for player_list in args: #max 6
             for player in player_list:
                 self.round_scoreboard[player.name] = 0 #sets score to 0
+                self.total_scoreboard[player.name] = 0 #sets score to 0
 
 
         
-    def display(self, round: int = True) -> list:
+    def display(self, round: bool = True) -> list:
         """
         Function for outputting the scores in the game
 
-        Returns a formatted version of the scoreboard which is readable 
+        Args:
+            Round (bool): True by default and determines whether the display should be the 
+            round scoreboard or total scoreboard 
+
+        Returns:
+           List: Formatted and sorted version of the scoreboard for readability 
         """
         
-
-        formatted_scoreboard = []
-        for player, value in self.round_scoreboard.items():
-            formatted_scoreboard.append((player,value))
         
-        if not round:
-           for player, value in self.total_scoreboard.items():
-            formatted_scoreboard.append((player,value)) 
+
+        scoreboard = self.round_scoreboard if round else self.total_scoreboard 
+        formatted_scoreboard = sorted(
+            scoreboard.items(), 
+            key= lambda x:x[1], #sort by the second element of each function
+            reverse = True
+        )
 
         return formatted_scoreboard
     

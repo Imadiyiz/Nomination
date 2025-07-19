@@ -5,6 +5,9 @@ from .PlayerClass import Player
 class TrumpManager:
     """
     Handles the trump selection
+
+    Args:
+        UIManager (UIManager): Required to output visuals for the user
     """
 
     def __init__(self, UIManager):
@@ -28,7 +31,7 @@ class TrumpManager:
         scores = dict()
         top_players = list()
         for player in player_set:
-            scores[player] = player.roundscore
+            scores[player] = player.round_score
         top_score = max(scores.values())
         
         for player in player_set:
@@ -59,7 +62,7 @@ class TrumpManager:
 
         suit_map = {'C': 'club', 'S': 'spade', 'H': 'heart', 'D': 'diamond'}
         while True:
-            choice = self.UIManager.get_player_input("[C] Club, [S] Spade, [H] Heart, [D] Diamond\n").strip().upper()
+            choice = self.UIManager.get_player_input("[C] Club,\n [S] Spade,\n [H] Heart,\n [D] Diamond\n").strip().upper()
             if choice in suit_map:
                 trump = suit_map[choice]
                 self.UIManager.display_message(f"{player.name} selected {trump}")

@@ -4,7 +4,6 @@ from .PlayerClass import Player
 from typing import List
 import random
 from Utils.Tools import clear_screen
-from time import sleep
 
 
 class BiddingManager():
@@ -47,7 +46,6 @@ class BiddingManager():
         if 0 <= bid_amount < 9:
             player.bid = bid_amount
             self.current_bids[player.name] = bid_amount
-            print("SUCCESSFUL ADD BID", self.current_bids,player.bid)
             return True
         
         return False
@@ -63,8 +61,8 @@ class BiddingManager():
         """
 
         total_bids = sum(int(bid) for bid in self.current_bids.values() if bid != 'X')
-
-        return max_cards - total_bids
+        banned_number = max_cards - total_bids 
+        return banned_number if banned_number > -1 else -1
     
     def computer_bid(self, player_queue: List[Player], player:Player = None, max_cards: int = 8):
         """
@@ -76,7 +74,7 @@ class BiddingManager():
         bid_invalid = True
         not_allowed = self.calculate_banned_number(max_cards)
         while bid_invalid:
-            bid  = random.randint(0,4)
+            bid  = random.randint(0, max_cards//2) #highest is 3 for the 6 card rounds
             if bid == not_allowed and player.handicapped_bid:
                 bid_invalid = True
             else:
@@ -93,7 +91,7 @@ class BiddingManager():
             """
             Function for the functionality of the bidding round
             """
-            #clear_screen()
+            clear_screen()
             
             #Bidding output begins
             self.UIManager.display_message(f"""\nBIDDING BEGINS\n""")
@@ -110,15 +108,13 @@ class BiddingManager():
 
 
             #end bidding information
-            #clear_screen()
+            clear_screen()
 
             self.display_round_difference(max_cards=max_cards)
 
             #output current bids
-            print(f"CURRENT BIDS: {self.current_bids}\n") #may need updating beforehand
-            print("ERROR HERE")
-            for player in player_queue:
-                print(player.bid, player.name, player.handicapped_bid)
+            self.UIManager.display_message(f"CURRENT BIDS: {self.current_bids}\n") #may need updating beforehand
+            self.UIManager.display_message("ERROR HERE")
 
     def display_round_difference(self, max_cards):
                 
@@ -154,7 +150,7 @@ HAND: {player.display_hand_str()}
             while not bid_complete and player.computer == False:
 
                 #cleans screen before printing the bidding menu
-                #clear_screen()
+                clear_screen()
                 self.UIManager.display_message(f"""ROUND {round_no}: {max_cards} CARDS PER HAND\n""")
                 user_input = self.UIManager.get_player_input((bidding_menu))
 
@@ -162,7 +158,7 @@ HAND: {player.display_hand_str()}
                         #player gets to enter bid
                             run = True
                             while run:
-                                #clear_screen()
+                                clear_screen()
                                 #check for handicap
                                     # apply param if handicapped  
                                 if self.player_bid(player_queue=player_queue,
@@ -197,7 +193,6 @@ HAND: {player.display_hand_str()}
         )
         user_input = self.UIManager.get_player_input(enter_bid_prompt)
         self.UIManager.display_message(f"{player} is bidding now")
-        sleep(2)
 
         #working with input  
         if user_input[0].strip():

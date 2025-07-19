@@ -7,7 +7,6 @@ from .CardClass import Card
 import random
 from .ScoreboardClass import Scoreboard
 from .UIManager import UIManager
-from Utils.Tools import clear_screen
 from .BiddingManager import BiddingManager
 from .PlayerStateManager import PlayerStateManager
 from .TrumpManager import TrumpManager
@@ -104,7 +103,7 @@ class Game():
         Cards are dealt for players, and reset
         """
 
-        max_cards = self.cards_per_round[self.round-1]
+        self.max_cards = self.cards_per_round[self.round-1]
         self.playerStateManager.reset_players_handicap()
         #dealer shifts eveery time bidding starts
         if self.round > 1:
@@ -118,7 +117,9 @@ class Game():
         self.deal_cards(amount_to_deal=self.cards_per_round[self.round - 1])
 
         #starts the bidding process
-        self.biddingManager.start_bidding(trump_suit=self.trump_suit, round_no=self.round, player_queue=self.player_queue, max_cards=max_cards)
+        self.biddingManager.start_bidding(trump_suit=self.trump_suit,
+                                        round_no=self.round, player_queue=self.player_queue,
+                                        max_cards=self.max_cards)
         self.phase = "playing"
 
     def handle_playing_phase(self):
@@ -130,16 +131,18 @@ class Game():
             self.score_round()
         self.phase = "scoring"
         if self.round > 1:
-            self.trump_suit = self.trumpManager.decide_trump()
+            self.trump_suit = self.trumpManager.decide_trump(player_set=self.player_set, current_trump=self.trump_suit)
     
     def handle_scoring_phase(self):
         """
         Scoring logic
         """
-        #self.score_round()
         if self.round < 6:
             self.round += 1
             self.phase = "bidding"
+            #display total scoreboard
+            self.scoreboard.update_total_scoreboard(self.player_queue, max_cards=self.max_cards)
+            self.UIManager.display_message(self.scoreboard.display(round=False))
         else:
             self.phase = "game_over"
 
@@ -153,8 +156,6 @@ class Game():
         #deal cards for player
         for player in self.player_set:
             player.collect_hand(self.deck.generate_hand(amount=amount_to_deal))
-
-    
 
     def start_round(self):
         """
