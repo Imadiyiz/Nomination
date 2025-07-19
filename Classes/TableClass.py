@@ -13,7 +13,7 @@ class Table():
     Responsible for validating whether the hand played is valid
     """
 
-    def __init__(self, max_players: int = 0):
+    def __init__(self):
 
         self.stack = list()
         self.winning_suit = None

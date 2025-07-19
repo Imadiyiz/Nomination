@@ -3,7 +3,6 @@
 from .TableClass import Table
 from .DeckClass import Deck
 from .PlayerClass import Player
-from .CardClass import Card
 import random
 from .ScoreboardClass import Scoreboard
 from .UIManager import UIManager
@@ -179,7 +178,8 @@ class Game():
                         first_card = None
 
                     for card in player.hand:
-                        if self.table.valid_add_to_stack(trump_suit=self.trump_suit, card=card, first_card=first_card):
+                        if self.table.valid_add_to_stack(trump_suit=self.trump_suit,
+                                                        card=card, first_card=first_card):
                             self.table.add_to_stack(card=card)
                             print(f"{player.name} played a {card}")
                             player.remove_card(card)
@@ -194,7 +194,10 @@ class Game():
                             #if the stack is not empty
                             if self.table.stack:
                                 first_card = self.table.stack[0] #gets the first card in stack
-                            if self.table.valid_add_to_stack(card=player.hand[user_choice], trump_suit=self.trump_suit, first_card=first_card, player_hand = player.hand):
+                            if self.table.valid_add_to_stack(card=player.hand[user_choice], 
+                                                             trump_suit=self.trump_suit, 
+                                                             first_card=first_card, 
+                                                             player_hand = player.hand):
                                 #if valid then add it to the queue
                                 self.table.add_to_stack(card=player.hand[user_choice])
                                 player.remove_card(card=player.hand[user_choice])
