@@ -90,8 +90,8 @@ class Game():
 
         #Generates objects for the game
         self.scoreboard = Scoreboard(self.player_set)
-        self.table = Table(max_players=len(self.player_set))
         self.UIManager = UIManager()
+        self.table = Table(self.UIManager)
         self.biddingManager = BiddingManager(self.UIManager)
         self.playerStateManager = PlayerStateManager(self.player_set)
         self.trumpManager = TrumpManager(self.UIManager)
@@ -167,47 +167,34 @@ class Game():
         self.scoreboard.reorder_round_scoreboard(player_queue=self.player_queue)
 
         for player in self.player_queue:
-            first_card = None
             run = True
             while run:
-                if player.computer:
-                    #if the stack is not empty
-                    if self.table.stack:
-                        first_card = self.table.stack[0] #gets the bottom item in stack cause error
+                    if player.computer:
+                        for card in player.hand:
+                            if self.table.valid_add_to_stack(player_hand=player.hand,
+                                                            card=card):
+                                self.table.add_to_stack(card=card)
+                                self.UIManager.display_message(f"{player.name} played a {card}")
+                                player.remove_card(card)
+                                break
+                        run = False
                     else:
-                        first_card = None
-
-                    for card in player.hand:
-                        if self.table.valid_add_to_stack(trump_suit=self.trump_suit,
-                                                        card=card, first_card=first_card):
-                            self.table.add_to_stack(card=card)
-                            print(f"{player.name} played a {card}")
-                            player.remove_card(card)
-                            break
-                    run = False
-                else:
-                    #logic for selecting a card to add to the stack
-                    user_choice  = input(self.display_ingame_menu(player))
-                    if user_choice[0].isdigit():
-                        user_choice = int(user_choice[0])
-                        if user_choice <= len(player.hand):
-                            #if the stack is not empty
-                            if self.table.stack:
-                                first_card = self.table.stack[0] #gets the first card in stack
-                            if self.table.valid_add_to_stack(card=player.hand[user_choice], 
-                                                             trump_suit=self.trump_suit, 
-                                                             first_card=first_card, 
-                                                             player_hand = player.hand):
-                                #if valid then add it to the queue
-                                self.table.add_to_stack(card=player.hand[user_choice])
-                                player.remove_card(card=player.hand[user_choice])
-                                run = False
+                       
+                        #logic for selecting a card to add to the stack
+                        user_choice  = input(self.display_ingame_menu(player))
+                        if user_choice[0].isdigit():
+                            user_choice = int(user_choice[0])
+                            if user_choice <= len(player.hand):
+                                if self.table.valid_add_to_stack(card=player.hand[user_choice], 
+                                                                player_hand = player.hand):
+                                    #if valid then add it to the queue
+                                    self.table.add_to_stack(card=player.hand[user_choice])
+                                    player.remove_card(card=player.hand[user_choice])
+                                    run = False
                             else:
-                                self.UIManager.display_message(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
+                                self.UIManager.display_message(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
                         else:
-                            self.UIManager.display_message(f"INVALID CARD CHOICE - OPTION MUST BE LESS THAN MAX LENGTH")
-                    else:
-                        self.UIManager.display_message("INVALID OPTION")
+                            self.UIManager.display_message("INVALID OPTION")
 
 
     def score_round(self):

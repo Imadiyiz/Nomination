@@ -7,9 +7,6 @@ class Card():
         self.value = value
         self.owner = owner
         self.picture = self.generate_picture()
-
-    def __str__(self):
-        return f"{self.value[0]} {self.suit[0]}"
     
     def generate_picture(self):
         """
@@ -80,3 +77,12 @@ class Card():
         if self.picture:
             return self.picture
         return None
+    
+    def __eq__(self, other):
+        return self.suit == other.suit and self.value == other.value
+    
+    def __str__(self):
+        return f"{self.value[0]} {self.suit[0]}"
+    
+    def __hash__(self):
+        return hash(str(self))

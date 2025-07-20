@@ -18,8 +18,8 @@ def my_deck():
 
 @pytest.fixture 
 def my_table():
-    table = Table(max_players=4)
-    return table
+    return Table(UIManager())
+    
 
 @pytest.fixture 
 def my_player():

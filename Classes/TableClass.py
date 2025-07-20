@@ -13,10 +13,11 @@ class Table():
     Responsible for validating whether the hand played is valid
     """
 
-    def __init__(self):
+    def __init__(self, UIManager):
 
         self.stack = list()
         self.winning_suit = None
+        self.UIManager = UIManager
 
     
     def display_stack(self, visual: bool = False) -> str:
@@ -49,7 +50,7 @@ class Table():
         self.stack.append(card)
 
     
-    def valid_add_to_stack(self, card: Card = None, trump_suit: str = None, first_card: Card = None, player_hand: list = []) -> bool:
+    def valid_add_to_stack(self, card: Card = None, player_hand: list = []) -> bool:
         """
         Function for verifying whether the card is able to be played in the current deck
 
@@ -58,20 +59,22 @@ class Table():
         """
 
         forced = False
-        #multiple iterations happen with the computer as I havent programmed sound logic for them
         if self.stack: 
-            if first_card.suit:
-                #determine whether they have to play a first suit/trump 
-                for _card in player_hand:
-                    if _card.suit[0].lower() == first_card.suit[0].lower():
-                        forced = True
-                if not forced:
-                    return True
-                #must play first card suit
-                if card.suit[0].lower() == first_card.suit[0].lower():
-                    return True
-                else:
-                    return False
+            first_card = self.stack[0] #gets the first card in stack
+            for _card in player_hand:
+                if _card.suit[0].lower() == first_card.suit[0].lower():
+                    forced = True
+
+            if not forced:
+                return True
+            
+            #must play first card suit
+            if card.suit[0].lower() == first_card.suit[0].lower():
+                return True
+            else:
+                self.UIManager.display_message(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
+                return False
+            
         return True
 
 
@@ -108,7 +111,7 @@ class Table():
                 else:
                     winning_card = card
                     self.winning_suit = card.suit[0].lower()
-        return winning_card # will have to manually query for the owner
+        return winning_card if winning_card else None # will have to manually query for the owner
 
 
     def reset(self):
