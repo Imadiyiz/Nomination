@@ -1,13 +1,8 @@
-from Classes.DeckClass import Deck
 from Classes.CardClass import Card
 from Classes.PlayerClass import Player
-from Classes.ScoreboardClass import Scoreboard
 from Classes.TableClass import Table
 import pytest
-from Classes.GameManager import Game
 from Classes.UIManager import UIManager
-from Classes.BiddingManager import BiddingManager
-import random
 
 @pytest.fixture
 def computer_players():
@@ -32,7 +27,6 @@ def c():
 class Test_Table():
 
     def test_add_to_stack(self, tb, c):
-        
         tb.add_to_stack(card = c)
         assert c in tb.stack
 
@@ -89,7 +83,6 @@ class Test_Table():
 
     def test_verify_winner(self, tb, cards, 
                             trump_suit, expected_winning_card):
-        
         tb.stack = cards
         winning_card = tb.verify_winner(trump_suit = trump_suit)
         assert expected_winning_card == winning_card

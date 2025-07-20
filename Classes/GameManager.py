@@ -75,7 +75,7 @@ class Game():
 
     def create_game(self):
         """
-        Function for creating the initial game. 
+        Initialises the game and the objects it requires. 
 
         """        
         #generate deck
@@ -99,7 +99,7 @@ class Game():
 
     def handle_bidding_phase(self):
         """
-        Cards are dealt for players, and reset
+        Bidding logic
         """
 
         self.max_cards = self.cards_per_round[self.round-1]
@@ -123,11 +123,12 @@ class Game():
 
     def handle_playing_phase(self):
         """
+        Playing logic
         """
         cards = self.cards_per_round[self.round-1]
         for _ in range(cards):
             self.start_round()
-            self.score_round()
+            self.score_hand()
         self.phase = "scoring"
         if self.round > 1:
             self.trump_suit = self.trumpManager.decide_trump(player_set=self.player_set, current_trump=self.trump_suit)
@@ -181,7 +182,8 @@ class Game():
                     else:
                        
                         #logic for selecting a card to add to the stack
-                        user_choice  = input(self.display_ingame_menu(player))
+                        user_choice  = self.UIManager.get_player_input(
+                            self.display_ingame_menu(player))
                         if user_choice[0].isdigit():
                             user_choice = int(user_choice[0])
                             if user_choice <= len(player.hand):
@@ -197,13 +199,13 @@ class Game():
                             self.UIManager.display_message("INVALID OPTION")
 
 
-    def score_round(self):
+    def score_hand(self):
         """
-        Function for scoring on a play by play basis (multiple times per round)
+        Scores on a play by play basis (multiple times per round)
         """
 
         winner_card = self.table.verify_winner(trump_suit=self.trump_suit)
-        winning_player= winner_card.owner
+        winning_player = winner_card.owner
         self.UIManager.display_message(message=f"DONE, {winning_player} is the winner with {winner_card}")
         self.scoreboard.update_round_scoreboard(self.player_set, winner_card=winner_card)
         self.player_queue = self.playerStateManager.update_winner_order(winner=winning_player, player_queue=self.player_queue)

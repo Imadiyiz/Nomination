@@ -2,6 +2,33 @@
 
 class Card():
 
+    """
+    Represents a playing card with a suit, value, and optional owner.
+
+    Each card has a suit (e.g., "Heart", "♦"), a value (e.g., "10", 10),
+    and can optionally have an owner (a Player object). Upon creation,
+    the card generates an ASCII representation of itself.
+
+    Attributes:
+        suit (tuple): The suit of the card, e.g., ("Heart", "♥").
+        value (tuple): The value of the card, e.g., ("10", 10) or ("Ace", 14).
+        owner (Player, optional): The owner of the card (default is None).
+        picture (str): The ASCII representation of the card.
+
+    Methods:
+        generate_picture():
+            Generates and returns an ASCII representation of the card.
+
+        __eq__(other):
+            Checks equality between two Card objects based on suit and value.
+
+        __str__():
+            Returns a string representation of the card (e.g., "10 Heart").
+
+        __hash__():
+            Returns a hash value for the card, allowing it to be used in sets and dictionaries.
+    """
+
     def __init__(self, suit: tuple, value: tuple, owner: 'Player' = None): # Forward reference to avoid nameError
         self.suit = suit
         self.value = value
