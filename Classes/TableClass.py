@@ -4,16 +4,21 @@ from .CardClass import Card
 
 class Table():
     """
-    Class for the table. 
-    Controls the flow of actions for the current stack of cards
-    Acts as a handManager
+    Manages the stack of cards during each round.
 
-    Responsible for managing the stack of cards during the round.
-    Responsible for determining which hand is won by which player
-    Responsible for validating whether the hand played is valid
+    This class handles:
+    - Adding and validating played cards
+    - Determining the winning card in the stack
+    - Resetting the table between rounds
     """
 
     def __init__(self, UIManager):
+        """
+        Initialises the Table object
+
+        Args:
+            UIManager (UIManager): The UI manager instance for displaying messages
+        """
 
         self.stack = list()
         self.winning_suit = None
@@ -22,78 +27,80 @@ class Table():
     
     def display_stack(self, visual: bool = False) -> str:
         """
-        Function for displaying the card contents of the current stack
+        Returns the string representation of the current stack
+        
+        Args:
+        visual (bool): If True, returns ASCII-style card pictures.
+        If False, returns simple string names.
 
-        Returns a string of the stack in a readable format
+        Returns: 
+            str: Formatted representation of the stack,
+            or a message if the stack is empty 
         """
 
         if self.stack:
             string = ""
-            if visual:
-                for card in self.stack:
-                    string += f"{card.picture}\n"
-                return string
-            else:
-                for card in self.stack:
-                    string += f"{card}\n"
-                return string
-        else:
-            return "Stack is currently empty" 
+            for card in self.stack:
+                string += f"{card.picture if visual else str(card)}\n"
+            return string
+        return "Stack is currently empty" 
 
     def add_to_stack(self, card: Card = None):
         """
-        Function for adding a card to the current
-         stack on the table
+        Adds a card to the table stack
 
-        Make sure to manually remove card from player hand
+        Note: The caller must ensure the card is removed from the player's hand.
+        
+        Args:
+            card (Card): The card to add to the stack.
         """
         self.stack.append(card)
 
     
     def valid_add_to_stack(self, card: Card = None, player_hand: list = []) -> bool:
         """
-        Function for verifying whether the card is able to be played in the current deck
+        Validates whether a card can be played based on suit-following rules.
+        
+        Args:
+            card (Card): The card the player wants to play
+            player_hand (list[Card]): The player's current hand.
 
-        Returns True if the card is valid and able to be added to the card stack
-        Returns False if the card is invalid and is unable to be added to the card stack
+        Returns:
+            bool: True if the play is valid, False otherwise.
+            Displays a message if invalid.
         """
 
-        forced = False
         if self.stack: 
             first_card = self.stack[0] #gets the first card in stack
-            for _card in player_hand:
-                if _card.suit[0].lower() == first_card.suit[0].lower():
-                    forced = True
-
-            if not forced:
-                return True
+            
+            must_follow_suit = any(
+                hand_card.suit[0].lower() == first_card.suit[0].lower()
+                for hand_card in player_hand
+            ) # True if any of the cards' suits match the first card
             
             #must play first card suit
-            if card.suit[0].lower() == first_card.suit[0].lower():
-                return True
-            else:
-                self.UIManager.display_message(f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
+            if must_follow_suit and card.suit[0].lower() != first_card.suit[0].lower():
+                self.UIManager.display_message(
+                    f"INVALID CARD CHOICE - WRONG SUIT: MUST BE {first_card.suit[0]}")
                 return False
-            
         return True
 
 
     def verify_winner(self, trump_suit: str) -> Card:
         """
-        Function for determining who is currently winning the stack on the table
+        Determines who is currently winning the stack on the table
 
-        Must know what the trump suit is, to correctly verify the winner
+        Args:
+            trump_suit (str): The trump suit used to prioritise winning cards
 
-        Returns the winning card
+        Returns: 
+            Card: The winning card based on the rules. Returns None if stack is empty
         """
         #reset winning card and suits
         winning_card = None
-        trumped = False
 
-        #quick check to verify whether the stack has been trumped
-        for card in self.stack:
-            if card.suit[0].lower() == trump_suit.lower():
-                trumped = True
+        #checks whether the stack has been trumped
+        trumped = any(card.suit[0].lower() == trump_suit.lower() for card in self.stack)
 
         #trumped cards are in the stack
         if trumped:
@@ -105,18 +112,17 @@ class Table():
         #No trumps in stack
             for card in self.stack:
                 if winning_card:
-                    if card.suit[0].lower() == self.winning_suit.lower():
-                        if card.value[1] > winning_card.value[1]:
-                            winning_card = card
+                    if card.suit[0].lower() == self.winning_suit.lower() and card.value[1] > winning_card.value[1]:
+                        winning_card = card
                 else:
                     winning_card = card
                     self.winning_suit = card.suit[0].lower()
-        return winning_card if winning_card else None # will have to manually query for the owner
 
+        return winning_card
 
     def reset(self):
         """
-        Function which resets the stack
+        Resets the table by clearing the stack and winning suit
         """
 
         self.winning_suit = None

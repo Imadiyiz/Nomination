@@ -12,7 +12,7 @@ class Card():
     Attributes:
         suit (tuple): The suit of the card, e.g., ("Heart", "♥").
         value (tuple): The value of the card, e.g., ("10", 10) or ("Ace", 14).
-        owner (Player, optional): The owner of the card (default is None).
+        owner (Player, optional): The owner of the card.
         picture (str): The ASCII representation of the card.
 
     Methods:
