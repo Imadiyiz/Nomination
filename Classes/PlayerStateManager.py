@@ -5,60 +5,70 @@ from .CardClass import Card
 
 class PlayerStateManager():
     """
-    Handles actions on behalf of the player objects
+    Manages player-related state during the game
 
-    *Tracks scores
-    *Updates statuses
-    *Resets Players
-    *QUery player hand if necessary
+    *Responibilities:
+    - Tacks current turn
+    ~ Manages player order (dealer/winner logic)
+    ~ Updates player scores
+    ~ Resets player handicap states
     """
-    def __init__(self, players:set):
-        self.players = players # list of player objects
-        self.current_turn = 0
 
-    def next_turn(self):
+    def __init__(self, players:set):
         """
-        Determines which player's turn is next
+        Initialises the PlayerStateManager with a set of players.
+
+        Args:
+            players (set[Player]): A set of Player instances
         """
-        self.current_turn = (self.current_turn + 1) % len(self.players)
-        return self.player[self.current_turn]
+        self.players = players # list of player objects
 
     def add_score(self, player:Player, points: int):
+        """
+        Adds points to a player's total score.
+
+        Args:
+            player (Player): The player to update.
+            points (int): Number of points to add
+        """
         player.total_score += points
             
-    def update_dealer_order(self, player_queue: list):
+    def update_dealer_order(self, player_queue: list[Player]) -> list[Player]:
         """
-        Function for updating the dealer and changing the order of play
+        Rotates the player queue to simulate dealer rotation (clockwise).
 
-        Returns player queue
+        Args:
+            player_queue (list(Player)): Current order of the players
+
+        Returns:
+            list[Player]: The new queue with a new dealer
         """
-        moving_player = player_queue[0]
-        player_queue.append(moving_player)
-        player_queue.remove(moving_player)
+        if player_queue:
+            player_queue.append(player_queue.pop(0))
         return player_queue
 
-    def update_winner_order(self, winner:Player, player_queue:list):
+    def update_winner_order(self, winner:Player, player_queue:list) -> list[Player]:
         """
-        Function for updating the order of the play depending on which player won the round
+        Rotates the player queue to ensure the player,
+        who won the previous hand, ends up playing first in the 
+        next hand
+        
+        Args:
+            winner (Player): The player who won the previous hand
+            player_queue (List(Player)): The current order of players
 
-        Returns player queue
+        Returns:
+            list[Player]: The new order of players starting with the winner
         """
 
-        found = False
-        while not found:
-            if player_queue[0] == winner:
-                found = True
-                return player_queue
-            selected_player = player_queue[0]
-            player_queue.append(selected_player)
-            player_queue.remove(selected_player)
-
+        while player_queue[0] != winner:
+            player_queue.append(player_queue.pop(0))
         return player_queue
 
 
     def reset_players_handicap(self):
         """
-        Calls the reset_handicap function for all the players in the game
+        Resets all players' handicap values
         """
 
         for player in self.players:
