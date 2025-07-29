@@ -1,33 +1,18 @@
 # Contents of the PlayerState test python file
 
-from Classes.DeckClass import Deck
-from Classes.CardClass import Card
+
 from Classes.PlayerClass import Player
 from Classes.PlayerStateManager import PlayerStateManager
-from Classes.ScoreboardClass import Scoreboard
-from Classes.TableClass import Table
 import pytest
-from Classes.GameManager import Game
-from Classes.UIManager import UIManager
-from Classes.BiddingManager import BiddingManager
+import random
 
-
-
-@pytest.fixture 
-def my_table():
-    return Table(UIManager())
     
 @pytest.fixture 
 def players():
     players_list = []
     for i in range(5):
         players_list.append(Player(name = f"{i+1}"))
-    return players
-
-@pytest.fixture 
-def my_card():
-    card = Card(suit=("Diamond", "♦"), value=("10", 10))
-    return card
+    return players_list
 
 @pytest.fixture
 def ps(players):
@@ -35,8 +20,12 @@ def ps(players):
 
 class Test_PlayerState():
     """
-    TEsts the functions in the PlayerStateManager class
+    Tests the functions in the PlayerStateManager class
     """
+    def test_add_score(self, ps):
+        _player = random.choice(list(ps.players))
+        ps.add_score(_player, points = 8)
+        assert _player.total_score == 8
 
     @pytest.mark.parametrize(
             "player_queue, expected_order, winner",
@@ -187,11 +176,11 @@ class Test_PlayerState():
 
     )
 
-    def test_update_dealer_order(self, 
-                                 ps, player_queue, expected_order):
+    def test_update_dealer_order(self,ps, player_queue, expected_order):
         """
         Determines whether the dealer shifts one position every round
         """
 
         order = ps.update_dealer_order(player_queue)
         assert order == expected_order
+

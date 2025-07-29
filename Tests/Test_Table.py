@@ -5,13 +5,6 @@ import pytest
 from Classes.UIManager import UIManager
 
 @pytest.fixture
-def computer_players():
-    players = []
-    for i in range(5):
-        players.append(Player(name=f"Player{i}"))
-    return players
-
-@pytest.fixture
 def ui():
     return UIManager()
 

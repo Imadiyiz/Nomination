@@ -31,7 +31,8 @@ class PlayerStateManager():
             player (Player): The player to update.
             points (int): Number of points to add
         """
-        player.total_score += points
+        if points >= 0:
+            player.total_score += points
             
     def update_dealer_order(self, player_queue: list[Player]) -> list[Player]:
         """
