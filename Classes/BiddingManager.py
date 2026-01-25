@@ -113,8 +113,7 @@ class BiddingManager():
             self.display_round_difference(max_cards=max_cards)
 
             #output current bids
-            self.UIManager.display_message(f"CURRENT BIDS: {self.current_bids}\n") #may need updating beforehand
-            self.UIManager.display_message("ERROR HERE")
+            self.UIManager.display_message(f"CURRENT BIDS: {self.current_bids}\n")
 
     def display_round_difference(self, max_cards):
                 
@@ -128,7 +127,7 @@ class BiddingManager():
             total_bids += bid
         difference = total_bids-max_cards
 
-        self.UIManager.display_message(f"{'+' if total_bids > max_cards else '-'} {difference} ROUND")
+        self.UIManager.display_message(f"{'+' if total_bids > max_cards else '-'}{abs(difference)} ROUND")
 
     def create_player_bid_menu(self, player_queue: List[Player], player:Player = None, 
                                round_no:int = 1, max_cards: int = 8, trump_suit: str = ""):

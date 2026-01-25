@@ -8,7 +8,7 @@ class PlayerStateManager():
     Manages player-related state during the game
 
     *Responibilities:
-    - Tacks current turn
+    - Tracks current turn
     ~ Manages player order (dealer/winner logic)
     ~ Updates player scores
     ~ Resets player handicap states

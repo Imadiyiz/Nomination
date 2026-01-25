@@ -9,6 +9,8 @@ from .UIManager import UIManager
 from .BiddingManager import BiddingManager
 from .PlayerStateManager import PlayerStateManager
 from .TrumpManager import TrumpManager
+from Utils.Tools import clear_screen
+
 
 class Game():
     """
@@ -42,36 +44,35 @@ class Game():
 
         #creates a temp list with the player objects in
         temp_list = []
-        temp_set = set()
         for List in args:
             for player in List:
                 temp_list.append(player)
 
-        self.player_set = set()
+        self.player_set = set(temp_list)
         self.player_queue = temp_list #queue for playing during rounds
         self.original_queue = temp_list #queue for after round when winning the hand does not affect the order
-
-        ##
-        #reset players and remove duplicate names
-        names_dict = {}
-        count = 2
-        for player in self.player_queue:
-            if player.name not in names_dict:
-                names_dict[player.name] = 1
-                self.player_set.add(player)
-            else:
-                player.name += str(count)
-                names_dict[player.name] = count
-                self.player_set.add(player)
-                count +=1
 
         #places the shuffled players into the actual list in their new order
         random.shuffle(self.player_queue)
         
         if len(self.player_set) > 6:
             raise Exception("Too many players in the game")
-        if len(self.player_set) < 3:
+        elif len(self.player_set) < 3:
+            print(len(self.player_set))
             raise Exception("Not enough players in the game")
+        
+        
+        #run gameloop after creating the game
+
+        self.create_game()
+        clear_screen(5)
+
+        while self.phase != "game_over":
+                _phase_handler = self.phases.get(self.phase)
+                if _phase_handler:
+                    _phase_handler() # function from the dictionary is performed
+                else:
+                    raise ValueError(f"Unknown game phase: {self.phase}")
 
     def create_game(self):
         """
@@ -230,21 +231,3 @@ STACK: {stack_str}
 ENTER THE INDEX VALUE OF THE CARD YOU WANT TO PLAY
 INPUT RANGE: {0}-{len(player.hand)-1}\n"""
         return _string
-    
-""" TODO: 
-
-
-12/07/25
-UNABLE TO BID FREELY ON SECOND ROUND 
-
-13/07/25
-DEALER SWITCHES AFTER EACH ROUND
-I AM CURRENTLY BIDDING FOR THE FOR THE AI AT THE MOMENT LEAVING THE PLAYER WITHOUT THEIR OWN BID
-
-18/07/2025
-i AM STRUGGLING SINCE THE BIDDING VALUES OF THE HUMANS ARE NOT SAVING OR ARE BEING RESET i WILL FIND OUT,
-THE TODAY i WILL WRITE LOTS OF UNIT TESTS TO GET BETTER AT THEM
-
-I'm going to rework the whole bidding manager setup, so that the bidding manager can handle everything to do with the bidding
-
-"""

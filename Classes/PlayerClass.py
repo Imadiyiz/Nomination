@@ -37,7 +37,6 @@ class Player:
                 return True
         return False
 
-##
     def set_trump_decider(self, boolean: bool):
         self.trump_decider = boolean
 
@@ -47,7 +46,6 @@ class Player:
         self.handicapped_bid = False    
         self.hand = []    
     
-    ##
     def display_hand_str(self) -> str:
         hand_str = ""
         for card in self.hand:
@@ -64,8 +62,9 @@ class Player:
     def __str__(self):
         return self.name
     
+    # ensures that each player object is unique by id not name
     def __eq__(self, other):
-        return isinstance(other, Player) and self.name == other.name
+        return self is other
 
     def __hash__(self):
-        return hash(self.name)
+        return id(self)
